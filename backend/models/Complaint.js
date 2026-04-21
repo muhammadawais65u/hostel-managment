@@ -1,0 +1,115 @@
+const mongoose = require('mongoose');
+
+const complaintSchema = new mongoose.Schema({
+  student: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Student',
+    required: true
+  },
+  user: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: true
+  },
+  hostel: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Hostel',
+    required: true
+  },
+  room: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Room',
+    required: false
+  },
+  title: {
+    type: String,
+    required: [true, 'Please provide a complaint title'],
+    trim: true,
+    maxlength: [100, 'Title cannot exceed 100 characters']
+  },
+  description: {
+    type: String,
+    required: [true, 'Please describe the issue'],
+    trim: true,
+    maxlength: [2000, 'Description cannot exceed 2000 characters']
+  },
+  category: {
+    type: String,
+    enum: ['maintenance', 'cleanliness', 'security', 'noise', 'facilities', 'food', 'internet', 'electrical', 'plumbing', 'other'],
+    required: [true, 'Please specify complaint category']
+  },
+  priority: {
+    type: String,
+    enum: ['low', 'medium', 'high', 'urgent'],
+    default: 'medium'
+  },
+  status: {
+    type: String,
+    enum: ['submitted', 'under_review', 'in_progress', 'resolved', 'rejected', 'closed'],
+    default: 'submitted'
+  },
+  attachments: [{
+    name: String,
+    url: String,
+    uploadedAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  assignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  resolvedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  resolution: {
+    type: String,
+    trim: true
+  },
+  resolvedAt: {
+    type: Date,
+    default: null
+  },
+  comments: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true
+    },
+    message: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now
+    }
+  }],
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+});
+
+// Update timestamp before saving
+complaintSchema.pre('save', function(next) {
+  this.updatedAt = Date.now();
+  next();
+});
+
+// Index for faster queries
+complaintSchema.index({ student: 1, status: 1 });
+complaintSchema.index({ hostel: 1, status: 1 });
+complaintSchema.index({ category: 1, priority: 1 });
+complaintSchema.index({ createdAt: -1 });
+
+module.exports = mongoose.model('Complaint', complaintSchema);
