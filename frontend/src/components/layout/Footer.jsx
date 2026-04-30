@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Building2, Mail, Phone, MapPin, Facebook, Twitter, Instagram, Linkedin } from 'lucide-react';
+import { Building2, Mail, Phone, MapPin, Share2, MessageCircle, Camera, Briefcase } from 'lucide-react';
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -27,10 +27,10 @@ const Footer = () => {
   };
 
   const socialLinks = [
-    { name: 'Facebook', icon: Facebook, href: '#' },
-    { name: 'Twitter', icon: Twitter, href: '#' },
-    { name: 'Instagram', icon: Instagram, href: '#' },
-    { name: 'LinkedIn', icon: Linkedin, href: '#' },
+    { name: 'Facebook', icon: Share2, href: '#' },
+    { name: 'Twitter', icon: MessageCircle, href: '#' },
+    { name: 'Instagram', icon: Camera, href: '#' },
+    { name: 'LinkedIn', icon: Briefcase, href: '#' },
   ];
 
   return (

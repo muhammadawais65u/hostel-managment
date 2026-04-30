@@ -12,10 +12,8 @@ import {
   Clock,
   Award
 } from 'lucide-react';
-import Button from '../components/ui/Button';
-import Card from '../components/ui/Card';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
+import Button from '../../components/ui/Button';
+import Card from '../../components/ui/Card';
 
 const Landing = () => {
   const features = [
@@ -66,8 +64,7 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-white">
-      <Navbar />
-
+     
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-primary-600 via-primary-700 to-primary-800 text-white overflow-hidden">
         {/* Background Pattern */}
@@ -276,8 +273,6 @@ const Landing = () => {
           </div>
         </div>
       </section>
-
-      <Footer />
     </div>
   );
 };

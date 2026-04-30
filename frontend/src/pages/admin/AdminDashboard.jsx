@@ -16,7 +16,8 @@ import {
   Clock,
   BarChart3,
   PieChart,
-  Activity
+  Activity,
+  Loader2
 } from 'lucide-react';
 import { adminAPI } from '../../services/api';
 import Card from '../../components/ui/Card';
@@ -62,7 +63,10 @@ const AdminDashboard = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Spinner size="lg" />
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 text-white animate-spin mx-auto mb-4" />
+          <p className="text-white text-lg">Loading Dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -70,7 +74,9 @@ const AdminDashboard = () => {
   if (error) {
     return (
       <div className="max-w-4xl mx-auto">
-        <Alert variant="error" title="Error">{error}</Alert>
+        <div className="bg-red-500/20 border border-red-500/30 backdrop-blur-sm text-red-200 px-6 py-4 rounded-xl">
+          {error}
+        </div>
       </div>
     );
   }
@@ -78,129 +84,135 @@ const AdminDashboard = () => {
   const { stats, recentApplications, recentComplaints, hostelStats } = data || {};
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold text-secondary-900">Admin Dashboard</h1>
-          <p className="text-secondary-600 mt-1">
-            Overview of hostel management system
-          </p>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Welcome Header */}
+      <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
+            <p className="text-blue-200">Overview of hostel management system</p>
+          </div>
+          <Button
+            onClick={() => navigate('/admin/users')}
+            leftIcon={UserPlus}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg"
+          >
+            Manage Users
+          </Button>
         </div>
-        <Button
-          onClick={() => navigate('/admin/users')}
-          leftIcon={UserPlus}
-        >
-          Manage Users
-        </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card padding="normal" className="border-l-4 border-l-primary-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-secondary-500">Total Students</p>
-              <p className="mt-2 text-2xl font-bold text-secondary-900">{stats?.totalStudents || 0}</p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-gradient-to-br from-blue-600/20 to-cyan-500/10 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-blue-500/20 rounded-xl">
+              <Users className="h-6 w-6 text-blue-300" />
             </div>
-            <div className="p-3 bg-primary-50 rounded-lg">
-              <Users className="h-6 w-6 text-primary-600" />
-            </div>
+            <TrendingUp className="h-4 w-4 text-green-400" />
           </div>
-        </Card>
+          <p className="text-blue-200 text-sm mb-2">Total Students</p>
+          <p className="text-white text-2xl font-bold">{stats?.totalStudents || 0}</p>
+        </div>
 
-        <Card padding="normal" className="border-l-4 border-l-green-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-secondary-500">Hostels</p>
-              <p className="mt-2 text-2xl font-bold text-secondary-900">{stats?.totalHostels || 0}</p>
+        <div className="bg-gradient-to-br from-green-600/20 to-emerald-500/10 backdrop-blur-lg rounded-2xl p-6 border border-green-500/30 hover:shadow-2xl hover:shadow-green-500/25 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-green-500/20 rounded-xl">
+              <Building2 className="h-6 w-6 text-green-300" />
             </div>
-            <div className="p-3 bg-green-50 rounded-lg">
-              <Building2 className="h-6 w-6 text-green-600" />
-            </div>
+            <TrendingUp className="h-4 w-4 text-green-400" />
           </div>
-        </Card>
+          <p className="text-green-200 text-sm mb-2">Hostels</p>
+          <p className="text-white text-2xl font-bold">{stats?.totalHostels || 0}</p>
+        </div>
 
-        <Card padding="normal" className="border-l-4 border-l-blue-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-secondary-500">Total Rooms</p>
-              <p className="mt-2 text-2xl font-bold text-secondary-900">{stats?.totalRooms || 0}</p>
+        <div className="bg-gradient-to-br from-purple-600/20 to-pink-500/10 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-purple-500/20 rounded-xl">
+              <DoorOpen className="h-6 w-6 text-purple-300" />
             </div>
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <DoorOpen className="h-6 w-6 text-blue-600" />
-            </div>
+            <TrendingUp className="h-4 w-4 text-green-400" />
           </div>
-        </Card>
+          <p className="text-purple-200 text-sm mb-2">Total Rooms</p>
+          <p className="text-white text-2xl font-bold">{stats?.totalRooms || 0}</p>
+        </div>
 
-        <Card padding="normal" className="border-l-4 border-l-purple-500">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-secondary-500">Occupancy</p>
-              <p className="mt-2 text-2xl font-bold text-secondary-900">{stats?.occupancyRate || 0}%</p>
+        <div className="bg-gradient-to-br from-orange-600/20 to-red-500/10 backdrop-blur-lg rounded-2xl p-6 border border-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/25 transition-all duration-300">
+          <div className="flex items-center justify-between mb-4">
+            <div className="p-3 bg-orange-500/20 rounded-xl">
+              <Activity className="h-6 w-6 text-orange-300" />
             </div>
-            <div className="p-3 bg-purple-50 rounded-lg">
-              <Activity className="h-6 w-6 text-purple-600" />
-            </div>
+            <TrendingDown className="h-4 w-4 text-red-400" />
           </div>
-        </Card>
+          <p className="text-orange-200 text-sm mb-2">Occupancy</p>
+          <p className="text-white text-2xl font-bold">{stats?.occupancyRate || 0}%</p>
+        </div>
       </div>
 
       {/* Pending Actions */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card
-          className="border-l-4 border-l-yellow-500 cursor-pointer hover:shadow-md transition-shadow"
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+        <div
+          className="bg-gradient-to-br from-yellow-600/20 to-amber-500/10 backdrop-blur-lg rounded-2xl p-6 border border-yellow-500/30 cursor-pointer hover:shadow-2xl hover:shadow-yellow-500/25 transition-all duration-300"
           onClick={() => navigate('/admin/applications')}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-secondary-500">Pending Applications</p>
-              <p className="mt-1 text-2xl font-bold text-secondary-900">{stats?.pendingApplications || 0}</p>
+              <p className="text-yellow-200 text-sm mb-2">Pending Applications</p>
+              <p className="text-white text-2xl font-bold">{stats?.pendingApplications || 0}</p>
             </div>
-            <FileText className="h-8 w-8 text-yellow-500" />
+            <div className="p-3 bg-yellow-500/20 rounded-xl">
+              <FileText className="h-8 w-8 text-yellow-300" />
+            </div>
           </div>
-        </Card>
+        </div>
 
-        <Card
-          className="border-l-4 border-l-red-500 cursor-pointer hover:shadow-md transition-shadow"
+        <div
+          className="bg-gradient-to-br from-red-600/20 to-orange-500/10 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30 cursor-pointer hover:shadow-2xl hover:shadow-red-500/25 transition-all duration-300"
           onClick={() => navigate('/admin/complaints')}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-secondary-500">Pending Complaints</p>
-              <p className="mt-1 text-2xl font-bold text-secondary-900">{stats?.pendingComplaints || 0}</p>
+              <p className="text-red-200 text-sm mb-2">Pending Complaints</p>
+              <p className="text-white text-2xl font-bold">{stats?.pendingComplaints || 0}</p>
             </div>
-            <MessageSquare className="h-8 w-8 text-red-500" />
+            <div className="p-3 bg-red-500/20 rounded-xl">
+              <MessageSquare className="h-8 w-8 text-red-300" />
+            </div>
           </div>
-        </Card>
+        </div>
 
-        <Card
-          className="border-l-4 border-l-orange-500 cursor-pointer hover:shadow-md transition-shadow"
+        <div
+          className="bg-gradient-to-br from-orange-600/20 to-pink-500/10 backdrop-blur-lg rounded-2xl p-6 border border-orange-500/30 cursor-pointer hover:shadow-2xl hover:shadow-orange-500/25 transition-all duration-300"
           onClick={() => navigate('/admin/fees')}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-secondary-500">Pending Fees</p>
-              <p className="mt-1 text-2xl font-bold text-secondary-900">{stats?.pendingFees || 0}</p>
+              <p className="text-orange-200 text-sm mb-2">Pending Fees</p>
+              <p className="text-white text-2xl font-bold">{stats?.pendingFees || 0}</p>
             </div>
-            <CreditCard className="h-8 w-8 text-orange-500" />
+            <div className="p-3 bg-orange-500/20 rounded-xl">
+              <CreditCard className="h-8 w-8 text-orange-300" />
+            </div>
           </div>
-        </Card>
+        </div>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Recent Applications */}
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <FileText className="h-5 w-5 text-secondary-500" />
-              <h3 className="font-semibold text-secondary-900">Recent Applications</h3>
+        <div className="bg-gradient-to-br from-blue-600/10 to-indigo-600/10 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-blue-500/20 rounded-xl">
+                <FileText className="h-6 w-6 text-blue-300" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Recent Applications</h3>
             </div>
             <Button
               variant="ghost"
               size="sm"
               rightIcon={ArrowRight}
               onClick={() => navigate('/admin/applications')}
+              className="text-blue-300 hover:text-white hover:bg-white/10"
             >
               View All
             </Button>
@@ -211,48 +223,53 @@ const AdminDashboard = () => {
               recentApplications.map((app) => (
                 <div
                   key={app._id}
-                  className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg hover:bg-secondary-100 transition-colors cursor-pointer"
+                  className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer"
                   onClick={() => navigate(`/admin/applications/${app._id}`)}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-primary-600" />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-blue-300" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-white">
+                          {app.student?.user?.name || 'Unknown'}
+                        </p>
+                        <p className="text-sm text-blue-200">
+                          {app.hostel?.name || 'Unknown Hostel'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-secondary-900">
-                        {app.student?.user?.name || 'Unknown'}
-                      </p>
-                      <p className="text-sm text-secondary-500">
-                        {app.hostel?.name || 'Unknown Hostel'}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      {getStatusBadge(app.status)}
+                      <span className="text-xs text-blue-300">
+                        {new Date(app.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {getStatusBadge(app.status)}
-                    <span className="text-xs text-secondary-400">
-                      {new Date(app.createdAt).toLocaleDateString()}
-                    </span>
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-center text-secondary-500 py-4">No recent applications</p>
+              <p className="text-center text-blue-200 py-8">No recent applications</p>
             )}
           </div>
-        </Card>
+        </div>
 
         {/* Recent Complaints */}
-        <Card>
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-secondary-500" />
-              <h3 className="font-semibold text-secondary-900">Recent Complaints</h3>
+        <div className="bg-gradient-to-br from-red-600/10 to-orange-600/10 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-red-500/20 rounded-xl">
+                <MessageSquare className="h-6 w-6 text-red-300" />
+              </div>
+              <h3 className="text-xl font-bold text-white">Recent Complaints</h3>
             </div>
             <Button
               variant="ghost"
               size="sm"
               rightIcon={ArrowRight}
               onClick={() => navigate('/admin/complaints')}
+              className="text-red-300 hover:text-white hover:bg-white/10"
             >
               View All
             </Button>
@@ -263,102 +280,107 @@ const AdminDashboard = () => {
               recentComplaints.map((complaint) => (
                 <div
                   key={complaint._id}
-                  className="flex items-center justify-between p-3 bg-secondary-50 rounded-lg hover:bg-secondary-100 transition-colors cursor-pointer"
+                  className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer"
                   onClick={() => navigate(`/admin/complaints/${complaint._id}`)}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                      complaint.priority === 'urgent' ? 'bg-red-100' :
-                      complaint.priority === 'high' ? 'bg-orange-100' :
-                      'bg-blue-100'
-                    }`}>
-                      <AlertCircle className={`h-5 w-5 ${
-                        complaint.priority === 'urgent' ? 'text-red-600' :
-                        complaint.priority === 'high' ? 'text-orange-600' :
-                        'text-blue-600'
-                      }`} />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        complaint.priority === 'urgent' ? 'bg-red-500/20' :
+                        complaint.priority === 'high' ? 'bg-orange-500/20' :
+                        'bg-blue-500/20'
+                      }`}>
+                        <AlertCircle className={`h-5 w-5 ${
+                          complaint.priority === 'urgent' ? 'text-red-300' :
+                          complaint.priority === 'high' ? 'text-orange-300' :
+                          'text-blue-300'
+                        }`} />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-white truncate">{complaint.title}</p>
+                        <p className="text-sm text-red-200 capitalize">
+                          {complaint.category} • {complaint.hostel?.name}
+                        </p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-medium text-secondary-900 truncate">{complaint.title}</p>
-                      <p className="text-sm text-secondary-500 capitalize">
-                        {complaint.category} • {complaint.hostel?.name}
-                      </p>
-                    </div>
+                    {getStatusBadge(complaint.status)}
                   </div>
-                  {getStatusBadge(complaint.status)}
                 </div>
               ))
             ) : (
-              <p className="text-center text-secondary-500 py-4">No recent complaints</p>
+              <p className="text-center text-red-200 py-8">No recent complaints</p>
             )}
           </div>
-        </Card>
+        </div>
       </div>
 
       {/* Hostel Stats */}
-      <Card>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-secondary-500" />
-            <h3 className="font-semibold text-secondary-900">Hostel Occupancy Overview</h3>
+      <div className="bg-gradient-to-br from-green-600/10 to-emerald-600/10 backdrop-blur-lg rounded-2xl p-6 border border-green-500/30">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-green-500/20 rounded-xl">
+              <Building2 className="h-6 w-6 text-green-300" />
+            </div>
+            <h3 className="text-xl font-bold text-white">Hostel Occupancy Overview</h3>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={() => navigate('/admin/hostels')}
+            className="border-green-500/30 text-green-300 hover:bg-green-500/20"
           >
             Manage Hostels
           </Button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="min-w-full">
-            <thead className="bg-secondary-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-white/20">
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
                   Hostel
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
                   Type
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
                   Capacity
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
                   Occupied
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
                   Available
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-secondary-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
                   Occupancy Rate
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-secondary-100">
+            <tbody className="divide-y divide-white/10">
               {hostelStats?.map((hostel) => (
-                <tr key={hostel.id} className="hover:bg-secondary-50">
+                <tr key={hostel.id} className="hover:bg-white/5 transition-colors">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <p className="font-medium text-secondary-900">{hostel.name}</p>
-                    <p className="text-sm text-secondary-500">{hostel.code}</p>
+                    <p className="font-medium text-white">{hostel.name}</p>
+                    <p className="text-sm text-green-200">{hostel.code}</p>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <Badge variant="secondary" className="capitalize">
+                    <span className="px-2 py-1 bg-green-500/20 text-green-300 rounded-full text-xs font-medium capitalize">
                       {hostel.type}
-                    </Badge>
+                    </span>
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-secondary-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-green-200">
                     {hostel.capacity}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-secondary-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-green-200">
                     {hostel.occupied}
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-secondary-700">
+                  <td className="px-6 py-4 whitespace-nowrap text-green-200">
                     {hostel.available}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-secondary-200 rounded-full overflow-hidden">
+                      <div className="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
                         <div
                           className={`h-full rounded-full ${
                             hostel.occupancyRate > 90 ? 'bg-red-500' :
@@ -368,7 +390,7 @@ const AdminDashboard = () => {
                           style={{ width: `${hostel.occupancyRate}%` }}
                         />
                       </div>
-                      <span className="text-sm font-medium text-secondary-700">
+                      <span className="text-sm font-medium text-green-200">
                         {hostel.occupancyRate}%
                       </span>
                     </div>
@@ -378,7 +400,7 @@ const AdminDashboard = () => {
             </tbody>
           </table>
         </div>
-      </Card>
+      </div>
     </div>
   );
 };

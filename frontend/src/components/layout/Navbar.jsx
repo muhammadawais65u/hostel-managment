@@ -25,13 +25,14 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
+    { name: 'Rooms', href: '/rooms' },
     { name: 'Contact', href: '/contact' },
   ];
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
@@ -42,8 +43,21 @@ const Navbar = () => {
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-6">
+          {/* Centered Navigation Links */}
+          <div className="hidden md:flex items-center gap-8">
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.href}
+                className="text-secondary-600 hover:text-primary-600 font-medium transition-colors"
+              >
+                {link.name}
+              </Link>
+            ))}
+          </div>
+
+          {/* Right Side - Auth Links */}
+          <div className="hidden md:flex items-center gap-3">
             {isAuthenticated ? (
               <>
                 <Link
@@ -105,26 +119,15 @@ const Navbar = () => {
               </>
             ) : (
               <>
-                {navLinks.map((link) => (
-                  <Link
-                    key={link.name}
-                    to={link.href}
-                    className="text-secondary-600 hover:text-secondary-900 font-medium transition-colors"
-                  >
-                    {link.name}
-                  </Link>
-                ))}
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="ghost"
-                    onClick={() => navigate('/login')}
-                  >
-                    Sign in
-                  </Button>
-                  <Button onClick={() => navigate('/register')}>
-                    Get Started
-                  </Button>
-                </div>
+                <Button
+                  variant="ghost"
+                  onClick={() => navigate('/login')}
+                >
+                  Sign in
+                </Button>
+                <Button onClick={() => navigate('/register')}>
+                  Get Started
+                </Button>
               </>
             )}
           </div>
