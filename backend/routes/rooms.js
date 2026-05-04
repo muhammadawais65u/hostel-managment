@@ -1,8 +1,40 @@
 const express = require('express');
 const router = express.Router();
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 const { protect, authorize } = require('../middleware/auth');
 const { roomValidation } = require('../utils/validators');
-const { Room, Hostel, Student } = require('../models');
+const { Room, Student } = require('../models');
+
+// Multer storage configuration
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadPath = path.join(__dirname, '../public/images/rooms');
+    if (!fs.existsSync(uploadPath)) {
+      fs.mkdirSync(uploadPath, { recursive: true });
+    }
+    cb(null, uploadPath);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({
+  storage: storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only image files are allowed'), false);
+    }
+  }
+});
 
 // Public routes
 
@@ -11,15 +43,14 @@ const { Room, Hostel, Student } = require('../models');
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const { hostel, status, type, floor, hasVacancy } = req.query;
+    const { status, type, floor, hasVacancy } = req.query;
 
     let query = {};
-    if (hostel) query.hostel = hostel;
     if (status) query.status = status;
     if (type) query.type = type;
     if (floor !== undefined) query.floor = floor;
 
-    let roomsQuery = Room.find(query).populate('hostel', 'name code type');
+    let roomsQuery = Room.find(query);
 
     // If hasVacancy is true, filter for rooms with available seats
     if (hasVacancy === 'true') {
@@ -54,7 +85,6 @@ router.get('/', async (req, res) => {
 router.get('/:id', async (req, res) => {
   try {
     const room = await Room.findById(req.params.id)
-      .populate('hostel', 'name code type warden')
       .populate({
         path: 'occupants',
         populate: {
@@ -88,23 +118,21 @@ router.use(protect);
 // @route   POST /api/rooms
 // @desc    Create new room
 // @access  Private (Admin)
-router.post('/', authorize('admin'), roomValidation, async (req, res) => {
+router.post('/', authorize('admin'), upload.array('images', 5), async (req, res) => {
   try {
-    // Verify hostel exists
-    const hostel = await Hostel.findById(req.body.hostel);
-    if (!hostel) {
-      return res.status(404).json({
-        success: false,
-        message: 'Hostel not found'
-      });
+    const roomData = { ...req.body };
+    
+    // Handle images
+    if (req.files && req.files.length > 0) {
+      roomData.images = req.files.map(file => `/public/images/rooms/${file.filename}`);
     }
-
-    const room = await Room.create(req.body);
-
-    // Update hostel room count
-    hostel.totalRooms += 1;
-    hostel.totalCapacity += room.capacity;
-    await hostel.save();
+    
+    // Parse features if sent as string
+    if (roomData.features && typeof roomData.features === 'string') {
+      roomData.features = JSON.parse(roomData.features);
+    }
+    
+    const room = await Room.create(roomData);
 
     res.status(201).json({
       success: true,
@@ -121,7 +149,7 @@ router.post('/', authorize('admin'), roomValidation, async (req, res) => {
 // @route   PUT /api/rooms/:id
 // @desc    Update room
 // @access  Private (Admin, Warden)
-router.put('/:id', authorize('admin', 'warden'), async (req, res) => {
+router.put('/:id', authorize('admin', 'warden'), upload.array('images', 5), async (req, res) => {
   try {
     let room = await Room.findById(req.params.id);
 
@@ -132,16 +160,24 @@ router.put('/:id', authorize('admin', 'warden'), async (req, res) => {
       });
     }
 
-    // If capacity is being changed, update hostel totals
-    if (req.body.capacity && req.body.capacity !== room.capacity) {
-      const hostel = await Hostel.findById(room.hostel);
-      hostel.totalCapacity = hostel.totalCapacity - room.capacity + req.body.capacity;
-      await hostel.save();
+    const roomData = { ...req.body };
+    
+    // Handle new images
+    if (req.files && req.files.length > 0) {
+      const newImages = req.files.map(file => `/public/images/rooms/${file.filename}`);
+      
+      // Keep existing images and add new ones
+      roomData.images = [...(room.images || []), ...newImages];
     }
-
+    
+    // Parse features if sent as string
+    if (roomData.features && typeof roomData.features === 'string') {
+      roomData.features = JSON.parse(roomData.features);
+    }
+    
     room = await Room.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      roomData,
       { new: true, runValidators: true }
     );
 
@@ -196,11 +232,6 @@ router.put('/:id/allocate', authorize('admin', 'warden'), async (req, res) => {
       if (prevRoom) {
         prevRoom.removeOccupant(studentId);
         await prevRoom.save();
-
-        // Update hostel occupied seats
-        const prevHostel = await Hostel.findById(prevRoom.hostel);
-        prevHostel.occupiedSeats -= 1;
-        await prevHostel.save();
       }
     }
 
@@ -210,14 +241,9 @@ router.put('/:id/allocate', authorize('admin', 'warden'), async (req, res) => {
 
     // Update student
     student.room = room._id;
-    student.hostel = room.hostel;
     await student.save();
 
-    // Update hostel occupied seats
-    const hostel = await Hostel.findById(room.hostel);
-    hostel.occupiedSeats += 1;
-    await hostel.save();
-
+    
     res.status(200).json({
       success: true,
       data: room

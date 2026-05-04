@@ -6,19 +6,14 @@ const roomSchema = new mongoose.Schema({
     required: [true, 'Please provide a room number'],
     trim: true
   },
-  hostel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Hostel',
-    required: true
-  },
   floor: {
     type: Number,
     required: [true, 'Please specify the floor number'],
-    min: 0
+    min: 1
   },
   type: {
     type: String,
-    enum: ['single', 'double', 'triple', 'quad', 'dormitory'],
+    enum: ['single', 'shared'],
     required: [true, 'Please specify room type']
   },
   capacity: {
@@ -26,24 +21,46 @@ const roomSchema = new mongoose.Schema({
     required: [true, 'Please specify room capacity'],
     min: 1
   },
+  price: {
+    type: Number,
+    required: [true, 'Please specify monthly rent (PKR)'],
+    min: 0
+  },
+  status: {
+    type: String,
+    enum: ['available', 'occupied'],
+    default: 'available'
+  },
+  features: {
+    ac: {
+      type: Boolean,
+      default: false
+    },
+    wifi: {
+      type: Boolean,
+      default: false
+    },
+    attachedBathroom: {
+      type: Boolean,
+      default: false
+    },
+    furnished: {
+      type: Boolean,
+      default: false
+    }
+  },
+  description: {
+    type: String,
+    trim: true
+  },
+  images: [{
+    type: String,
+    trim: true
+  }],
   occupiedSeats: {
     type: Number,
     default: 0,
     min: 0
-  },
-  rentPerMonth: {
-    type: Number,
-    required: [true, 'Please specify monthly rent'],
-    min: 0
-  },
-  facilities: [{
-    type: String,
-    trim: true
-  }],
-  status: {
-    type: String,
-    enum: ['available', 'occupied', 'maintenance', 'reserved'],
-    default: 'available'
   },
   occupants: [{
     type: mongoose.Schema.Types.ObjectId,
@@ -63,8 +80,8 @@ const roomSchema = new mongoose.Schema({
   }
 });
 
-// Compound index to ensure unique room numbers per hostel
-roomSchema.index({ roomNumber: 1, hostel: 1 }, { unique: true });
+// Unique index for room numbers
+roomSchema.index({ roomNumber: 1 }, { unique: true });
 
 // Update timestamp and status before saving
 roomSchema.pre('save', function(next) {
@@ -74,8 +91,8 @@ roomSchema.pre('save', function(next) {
   if (this.occupiedSeats >= this.capacity) {
     this.status = 'occupied';
   } else if (this.occupiedSeats > 0) {
-    this.status = this.status === 'maintenance' ? 'maintenance' : 'available';
-  } else if (this.status !== 'maintenance' && this.status !== 'reserved') {
+    this.status = 'available';
+  } else {
     this.status = 'available';
   }
 

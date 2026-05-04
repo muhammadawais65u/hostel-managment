@@ -12,7 +12,6 @@ dotenv.config({ path: './.env' });
 // Route files
 const auth = require('./routes/auth');
 const students = require('./routes/students');
-const hostels = require('./routes/hostels');
 const rooms = require('./routes/rooms');
 const applications = require('./routes/applications');
 const complaints = require('./routes/complaints');
@@ -35,7 +34,10 @@ const app = express();
 app.use(express.json());
 
 // Enable CORS
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'http://localhost:5173'],
+  credentials: true
+}));
 
 // Dev logging middleware
 if (process.env.NODE_ENV === 'development') {
@@ -48,13 +50,25 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
 
-// Static files for uploads
+// Create public directory for images if it doesn't exist
+const publicDir = path.join(__dirname, 'public');
+if (!fs.existsSync(publicDir)) {
+  fs.mkdirSync(publicDir);
+}
+
+// Create images subdirectory in public
+const imagesDir = path.join(publicDir, 'images');
+if (!fs.existsSync(imagesDir)) {
+  fs.mkdirSync(imagesDir);
+}
+
+// Static files for uploads and public
 app.use('/uploads', express.static(uploadsDir));
+app.use('/public', express.static(publicDir));
 
 // Mount routers
 app.use('/api/auth', auth);
 app.use('/api/students', students);
-app.use('/api/hostels', hostels);
 app.use('/api/rooms', rooms);
 app.use('/api/applications', applications);
 app.use('/api/complaints', complaints);
@@ -71,7 +85,6 @@ app.get('/', (req, res) => {
     endpoints: {
       auth: '/api/auth',
       students: '/api/students',
-      hostels: '/api/hostels',
       rooms: '/api/rooms',
       applications: '/api/applications',
       complaints: '/api/complaints',

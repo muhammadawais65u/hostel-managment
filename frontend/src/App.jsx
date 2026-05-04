@@ -26,7 +26,6 @@ import Settings from './pages/student/Settings';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
-import HostelManagement from './pages/admin/HostelManagement';
 import AdminRooms from './pages/admin/AdminRooms';
 import AdminRoomRequests from './pages/admin/AdminRoomRequests';
 
@@ -99,8 +98,7 @@ const App = () => {
           >
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
-            <Route path="hostels" element={<HostelManagement />} />
-            <Route path="rooms" element={<AdminRooms />} />
+                        <Route path="rooms" element={<AdminRooms />} />
             <Route path="room-requests" element={<AdminRoomRequests />} />
             <Route path="applications" element={<PlaceholderPage title="Applications" />} />
             <Route path="complaints" element={<PlaceholderPage title="Complaints" />} />

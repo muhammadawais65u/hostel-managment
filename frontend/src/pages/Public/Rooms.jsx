@@ -17,7 +17,9 @@ import {
   ArrowRight,
   X,
   ChevronDown,
-  Loader2
+  Loader2,
+  Edit,
+  Trash2
 } from 'lucide-react';
 import { roomAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
@@ -31,6 +33,7 @@ const Rooms = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     fetchRooms();
@@ -72,12 +75,30 @@ const Rooms = () => {
     }
   };
 
+  const handleEditRoom = (roomId) => {
+    navigate('/admin/rooms', { state: { editRoomId: roomId } });
+  };
+
+  const handleDeleteRoom = async (roomId) => {
+    if (!window.confirm('Are you sure you want to delete this room? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      setDeleteLoading(true);
+      await roomAPI.delete(roomId);
+      setRooms(rooms.filter(room => room._id !== roomId));
+      setDeleteLoading(false);
+    } catch (err) {
+      console.error('Error deleting room:', err);
+      setDeleteLoading(false);
+    }
+  };
+
   const roomTypes = [
     { id: 'all', name: 'All Rooms' },
     { id: 'single', name: 'Single Room' },
-    { id: 'double', name: 'Double Room' },
-    { id: 'triple', name: 'Triple Room' },
-    { id: 'suite', name: 'Suite' }
+    { id: 'shared', name: 'Shared Room' }
   ];
 
   const amenities = {
@@ -104,29 +125,42 @@ const Rooms = () => {
 
   const RoomCard = ({ room }) => {
     const [isLiked, setIsLiked] = useState(false);
+    const isFeatured = false; // Default value since we don't have featured logic
 
-    // Handle API data format with fallbacks
     const roomId = room._id || room.id;
-    const roomName = room.name || room.roomNumber || `Room ${roomId}`;
+    const roomName = room.roomNumber || room.name || 'Room';
     const roomType = room.type || 'standard';
-    const roomPrice = room.price || room.monthlyRent || 0;
     const roomCapacity = room.capacity || 1;
-    const roomAvailable = room.available !== undefined ? room.available : room.vacant || 0;
-    const roomTotal = room.total || room.totalBeds || roomCapacity;
-    const roomLocation = room.location || (room.hostel?.name ? `${room.hostel.name}` : 'Main Block');
-    const roomAmenities = room.amenities || room.facilities || ['wifi', 'security'];
+    const roomTotal = room.capacity || 1;
+    const roomAvailable = room.capacity - (room.occupiedSeats || 0);
+    const roomPrice = room.price || room.rentPerMonth || 0;
+    const roomLocation = `Floor ${room.floor || 1}`;
     const roomRating = room.rating || 4.5;
-    const roomReviews = room.reviews || Math.floor(Math.random() * 100) + 20;
-    const roomDescription = room.description || `${roomType} room with ${roomCapacity} bed(s), suitable for students.`;
-    const isFeatured = room.featured || roomPrice > 5000;
+    const roomReviews = room.reviews || Math.floor(Math.random() * 50) + 10;
+    const roomDescription = room.description || 'Comfortable and well-maintained room with modern amenities.';
+
+    // Convert features object to amenities array
+    const roomAmenities = [];
+    if (room.features?.ac) roomAmenities.push('AC');
+    if (room.features?.wifi) roomAmenities.push('WiFi');
+    if (room.features?.attachedBathroom) roomAmenities.push('Attached Bathroom');
+    if (room.features?.furnished) roomAmenities.push('Furnished');
 
     return (
       <div className="card overflow-hidden hover:shadow-lg transition-shadow duration-300">
         {/* Room Image */}
         <div className="relative">
-          <div className="h-48 bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-            <Bed className="h-16 w-16 text-primary-400" />
-          </div>
+          {room.images && room.images.length > 0 ? (
+            <img
+              src={`http://localhost:5000${room.images[0]}`}
+              alt={roomName}
+              className="w-full h-48 object-cover"
+            />
+          ) : (
+            <div className="h-48 bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
+              <Bed className="h-16 w-16 text-primary-400" />
+            </div>
+          )}
 
           {/* Featured Badge */}
           {isFeatured && (
@@ -216,13 +250,34 @@ const Rooms = () => {
                 <span className="text-xs text-secondary-500">per month</span>
               </div>
             </div>
-            <button
-              onClick={() => handleBookNow(roomId)}
-              className="btn-primary flex items-center gap-2"
-            >
-              Book Now
-              <ArrowRight className="h-4 w-4" />
-            </button>
+            <div className="flex gap-2">
+              {user?.role === 'admin' && (
+                <>
+                  <button
+                    onClick={() => handleEditRoom(roomId)}
+                    className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                    title="Edit Room"
+                  >
+                    <Edit className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteRoom(roomId)}
+                    disabled={deleteLoading}
+                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+                    title="Delete Room"
+                  >
+                    {deleteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => handleBookNow(roomId)}
+                className="btn-primary flex items-center gap-2"
+              >
+                Book Now
+                <ArrowRight className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </div>

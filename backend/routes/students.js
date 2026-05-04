@@ -14,8 +14,7 @@ router.use(authorize('student'));
 router.get('/dashboard', async (req, res) => {
   try {
     const student = await Student.findOne({ user: req.user.id })
-      .populate('room', 'roomNumber type capacity')
-      .populate('hostel', 'name code');
+      .populate('room', 'roomNumber type capacity');
 
     if (!student) {
       return res.status(404).json({
@@ -86,8 +85,7 @@ router.get('/profile', async (req, res) => {
   try {
     const student = await Student.findOne({ user: req.user.id })
       .populate('user', 'name email phone avatar')
-      .populate('room', 'roomNumber type floor')
-      .populate('hostel', 'name code type');
+      .populate('room', 'roomNumber type floor');
 
     if (!student) {
       return res.status(404).json({

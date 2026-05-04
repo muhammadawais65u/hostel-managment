@@ -28,7 +28,6 @@ const AdminLayout = () => {
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/admin/dashboard', active: location.pathname === '/admin/dashboard' },
     { icon: Users, label: 'User Management', path: '/admin/users' },
-    { icon: Building2, label: 'Hostel Management', path: '/admin/hostels' },
     { icon: DoorOpen, label: 'Room Management', path: '/admin/rooms' },
     { icon: FileText, label: 'Applications', path: '/admin/applications' },
     { icon: MessageSquare, label: 'Complaints', path: '/admin/complaints' },
