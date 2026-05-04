@@ -49,6 +49,21 @@ export const AuthProvider = ({ children }) => {
     try {
       setError(null);
       const response = await authAPI.register(userData);
+      // Registration now returns userId and email, not token and user
+      const { userId, email } = response.data;
+
+      return { success: true, userId, email };
+    } catch (err) {
+      const message = err.response?.data?.message || 'Registration failed';
+      setError(message);
+      return { success: false, error: message };
+    }
+  };
+
+  const verifyEmail = async (userId, email, otp) => {
+    try {
+      setError(null);
+      const response = await authAPI.verifyEmail({ userId, email, otp });
       const { token, user } = response.data;
 
       localStorage.setItem('token', token);
@@ -57,7 +72,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true, user };
     } catch (err) {
-      const message = err.response?.data?.message || 'Registration failed';
+      const message = err.response?.data?.message || 'Email verification failed';
       setError(message);
       return { success: false, error: message };
     }
@@ -94,6 +109,7 @@ export const AuthProvider = ({ children }) => {
     error,
     login,
     register,
+    verifyEmail,
     logout,
     updateProfile,
     clearError,

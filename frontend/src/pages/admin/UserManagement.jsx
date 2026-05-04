@@ -13,9 +13,10 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
-  Loader2
+  Loader2,
+  UserCog
 } from 'lucide-react';
-import { adminAPI } from '../../services/api';
+import { adminAPI, authAPI } from '../../services/api';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -27,6 +28,9 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [roleChangeLoading, setRoleChangeLoading] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -40,6 +44,34 @@ const UserManagement = () => {
       console.error('Failed to fetch users:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (newRole) => {
+    if (!selectedUser) return;
+
+    setRoleChangeLoading(true);
+    try {
+      const response = await authAPI.changeRole({
+        userId: selectedUser._id,
+        newRole
+      });
+
+      if (response.data.success) {
+        // Update users list
+        setUsers(users.map(user => 
+          user._id === selectedUser._id 
+            ? { ...user, role: newRole }
+            : user
+        ));
+        
+        setShowRoleModal(false);
+        setSelectedUser(null);
+      }
+    } catch (err) {
+      console.error('Failed to change role:', err);
+    } finally {
+      setRoleChangeLoading(false);
     }
   };
 
@@ -143,8 +175,8 @@ const UserManagement = () => {
 
       {/* Users List */}
       <div className="bg-gradient-to-br from-blue-600/10 to-indigo-600/10 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
-        <div className="overflow-x-auto">
-          <table className="w-full">
+        <div className="table-container">
+          <table className="w-full min-w-[800px]">
             <thead>
               <tr className="border-b border-white/20">
                 <th className="px-6 py-3 text-left text-xs font-medium text-blue-200 uppercase tracking-wider">
@@ -224,6 +256,17 @@ const UserManagement = () => {
                         <Button
                           variant="ghost"
                           size="sm"
+                          className="text-purple-300 hover:text-white hover:bg-white/10"
+                          onClick={() => {
+                            setSelectedUser(user);
+                            setShowRoleModal(true);
+                          }}
+                        >
+                          <UserCog className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           className="text-red-300 hover:text-white hover:bg-white/10"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -251,6 +294,61 @@ const UserManagement = () => {
           </table>
         </div>
       </div>
+
+      {/* Role Change Modal */}
+      {showRoleModal && selectedUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-gradient-to-br from-blue-600/10 to-indigo-600/10 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30 max-w-md w-full">
+            <h3 className="text-xl font-bold text-white mb-4">Change User Role</h3>
+            <div className="mb-6">
+              <p className="text-blue-200 mb-2">User: <span className="text-white font-medium">{selectedUser.name}</span></p>
+              <p className="text-blue-200 mb-2">Email: <span className="text-white">{selectedUser.email}</span></p>
+              <p className="text-blue-200">Current Role: <Badge variant={getRoleBadge(selectedUser.role).variant}>{getRoleBadge(selectedUser.role).label}</Badge></p>
+            </div>
+            
+            <div className="space-y-3">
+              <p className="text-blue-200 text-sm mb-3">Select New Role:</p>
+              <Button
+                onClick={() => handleRoleChange('student')}
+                disabled={roleChangeLoading || selectedUser.role === 'student'}
+                className="w-full justify-start bg-white/10 border border-white/20 text-white hover:bg-white/20 disabled:opacity-50"
+              >
+                <Users className="h-4 w-4 mr-2" />
+                Student
+              </Button>
+              <Button
+                onClick={() => handleRoleChange('warden')}
+                disabled={roleChangeLoading || selectedUser.role === 'warden'}
+                className="w-full justify-start bg-white/10 border border-white/20 text-white hover:bg-white/20 disabled:opacity-50"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Warden
+              </Button>
+              <Button
+                onClick={() => handleRoleChange('admin')}
+                disabled={roleChangeLoading || selectedUser.role === 'admin'}
+                className="w-full justify-start bg-white/10 border border-white/20 text-white hover:bg-white/20 disabled:opacity-50"
+              >
+                <Shield className="h-4 w-4 mr-2" />
+                Admin
+              </Button>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <Button
+                onClick={() => {
+                  setShowRoleModal(false);
+                  setSelectedUser(null);
+                }}
+                disabled={roleChangeLoading}
+                className="flex-1 bg-white/10 border border-white/20 text-white hover:bg-white/20"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

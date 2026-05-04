@@ -16,12 +16,14 @@ import {
   AlertCircle
 } from 'lucide-react';
 import { studentAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Alert from '../../components/ui/Alert';
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');

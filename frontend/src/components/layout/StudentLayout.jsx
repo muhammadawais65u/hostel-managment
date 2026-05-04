@@ -19,10 +19,12 @@ import {
   Building2,
   User
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 
 const StudentLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const menuItems = [
@@ -39,7 +41,7 @@ const StudentLayout = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 overflow-x-hidden">
       {/* Animated Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
@@ -47,7 +49,7 @@ const StudentLayout = () => {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"></div>
       </div>
 
-      <div className="flex relative z-10">
+      <div className="flex relative z-10 layout-container">
         {/* Sidebar */}
         <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-purple-900/90 to-indigo-900/90 backdrop-blur-lg border-r border-purple-500/30 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
           <div className="flex flex-col h-full">
@@ -110,7 +112,10 @@ const StudentLayout = () => {
 
             {/* Logout Button */}
             <div className="p-4 border-t border-purple-500/30">
-              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200">
+              <button 
+                onClick={logout}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200"
+              >
                 <LogOut className="h-5 w-5" />
                 <span className="font-medium">Logout</span>
               </button>
@@ -157,7 +162,7 @@ const StudentLayout = () => {
           </header>
 
           {/* Page Content */}
-          <main className="p-6">
+          <main className="p-6 main-content">
             <Outlet />
           </main>
         </div>

@@ -5,10 +5,17 @@
 @layer base {
   html {
     font-family: 'Inter', system-ui, sans-serif;
+    overflow-x: hidden;
   }
 
   body {
     @apply bg-secondary-50 text-secondary-900 antialiased;
+    overflow-x: hidden;
+    min-width: 0;
+  }
+
+  * {
+    min-width: 0;
   }
 }
 
@@ -157,4 +164,56 @@
 /* Custom focus styles */
 *:focus-visible {
   @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+}
+
+/* Prevent horizontal scrolling */
+.layout-container {
+  overflow-x: hidden;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Fix table overflow */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Fix grid overflow */
+.grid-container {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Fix card overflow */
+.card-content {
+  overflow-x: hidden;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+/* Fix text overflow */
+.text-overflow {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Fix responsive containers */
+.responsive-container {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Fix sidebar overflow */
+.sidebar-container {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Fix main content overflow */
+.main-content {
+  overflow-x: hidden;
+  width: 100%;
+  min-width: 0;
 }

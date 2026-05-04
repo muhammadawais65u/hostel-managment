@@ -14,9 +14,14 @@ import {
   TrendingUp,
   TrendingDown,
   Loader2,
-  User
+  User,
+  Mail,
+  Phone,
+  Calendar,
+  BookOpen
 } from 'lucide-react';
 import { studentAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import Badge from '../../components/ui/Badge';
@@ -25,6 +30,7 @@ import Alert from '../../components/ui/Alert';
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState(null);
@@ -83,22 +89,29 @@ const StudentDashboard = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-              {/* Welcome Header */}
+              {/* User Details Card */}
               <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div>
-                    <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {student?.user?.name || 'Student'}!</h1>
-                    <p className="text-purple-200">Here's what's happening with your hostel accommodation today.</p>
+                <div className="flex items-center gap-6">
+                  <div className="w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                    <User className="h-10 w-10 text-white" />
                   </div>
-                  {student?.applicationStatus === 'none' && (
-                    <Button
-                      onClick={() => navigate('/student/application')}
-                      rightIcon={ArrowRight}
-                      className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg"
-                    >
-                      Apply for Hostel
-                    </Button>
-                  )}
+                  <div className="flex-1">
+                    <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {user?.name || 'Student'}!</h1>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-purple-200">
+                      <div className="flex items-center gap-2">
+                        <Mail className="h-4 w-4" />
+                        <span>{user?.email}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Phone className="h-4 w-4" />
+                        <span>{user?.phone || 'Not provided'}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <BookOpen className="h-4 w-4" />
+                        <span>{user?.role || 'Student'}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

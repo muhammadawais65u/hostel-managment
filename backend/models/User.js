@@ -40,7 +40,19 @@ const userSchema = new mongoose.Schema({
   },
   isActive: {
     type: Boolean,
-    default: true
+    default: false
+  },
+  isEmailVerified: {
+    type: Boolean,
+    default: false
+  },
+  emailVerificationOTP: {
+    type: String,
+    select: false
+  },
+  emailVerificationExpires: {
+    type: Date,
+    select: false
   },
   createdAt: {
     type: Date,
@@ -76,6 +88,41 @@ userSchema.methods.getSignedJwtToken = function() {
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRE }
   );
+};
+
+// Generate email verification OTP
+userSchema.methods.generateEmailVerificationOTP = function() {
+  // Generate 6-digit OTP
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  
+  // Set OTP and expiry (15 minutes)
+  this.emailVerificationOTP = otp;
+  this.emailVerificationExpires = Date.now() + 15 * 60 * 1000;
+  
+  return otp;
+};
+
+// Verify email OTP
+userSchema.methods.verifyEmailOTP = function(enteredOTP) {
+  if (!this.emailVerificationOTP || !this.emailVerificationExpires) {
+    return false;
+  }
+  
+  // Check if OTP is expired
+  if (Date.now() > this.emailVerificationExpires) {
+    return false;
+  }
+  
+  // Check if OTP matches
+  return this.emailVerificationOTP === enteredOTP;
+};
+
+// Clear email verification fields
+userSchema.methods.clearEmailVerificationFields = function() {
+  this.emailVerificationOTP = undefined;
+  this.emailVerificationExpires = undefined;
+  this.isEmailVerified = true;
+  this.isActive = true;
 };
 
 module.exports = mongoose.model('User', userSchema);
