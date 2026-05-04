@@ -17,7 +17,7 @@ import Register from './pages/auth/Register';
 
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard';
-import Application from './pages/student/Application';
+import Application from './pages/student/ApplyRoom';
 import Payment from './pages/student/Payment';
 import Complaints from './pages/student/Complaints';
 import RoomDetails from './pages/student/RoomDetails';
@@ -27,6 +27,8 @@ import Settings from './pages/student/Settings';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import HostelManagement from './pages/admin/HostelManagement';
+import AdminRooms from './pages/admin/AdminRooms';
+import AdminRoomRequests from './pages/admin/AdminRoomRequests';
 
 // Warden Pages
 import WardenDashboard from './pages/warden/WardenDashboard';
@@ -98,7 +100,8 @@ const App = () => {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
             <Route path="hostels" element={<HostelManagement />} />
-            <Route path="rooms" element={<PlaceholderPage title="Room Management" />} />
+            <Route path="rooms" element={<AdminRooms />} />
+            <Route path="room-requests" element={<AdminRoomRequests />} />
             <Route path="applications" element={<PlaceholderPage title="Applications" />} />
             <Route path="complaints" element={<PlaceholderPage title="Complaints" />} />
             <Route path="fees" element={<PlaceholderPage title="Fee Management" />} />

@@ -88,16 +88,16 @@ const StudentDashboard = () => {
   const { student, stats, notifications } = data || {};
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className=" mx-auto space-y-6">
               {/* User Details Card */}
-              <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
+              <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm">
                 <div className="flex items-center gap-6">
-                  <div className="w-20 h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                  <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center">
                     <User className="h-10 w-10 text-white" />
                   </div>
                   <div className="flex-1">
-                    <h1 className="text-3xl font-bold text-white mb-2">Welcome back, {user?.name || 'Student'}!</h1>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-purple-200">
+                    <h1 className="text-3xl font-bold text-gray-800 mb-2">Welcome back, {user?.name || 'Student'}!</h1>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-gray-600">
                       <div className="flex items-center gap-2">
                         <Mail className="h-4 w-4" />
                         <span>{user?.email}</span>
@@ -117,48 +117,44 @@ const StudentDashboard = () => {
 
               {/* Stats Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-gradient-to-br from-purple-600/20 to-purple-500/10 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300">
+                <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-purple-500/20 rounded-xl">
-                      <FileText className="h-6 w-6 text-purple-300" />
+                    <div className="p-3 bg-blue-50 rounded-xl">
+                      <FileText className="h-6 w-6 text-blue-600" />
                     </div>
-                    <TrendingUp className="h-4 w-4 text-green-400" />
                   </div>
-                  <p className="text-purple-200 text-sm mb-2">Application Status</p>
-                  <div className="text-white font-semibold">{getStatusBadge(student?.applicationStatus)}</div>
+                  <p className="text-gray-600 text-sm mb-2">Application Status</p>
+                  <p className="text-gray-800 text-2xl font-bold">{getStatusBadge(student?.applicationStatus)}</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-green-600/20 to-emerald-500/10 backdrop-blur-lg rounded-2xl p-6 border border-green-500/30 hover:shadow-2xl hover:shadow-green-500/25 transition-all duration-300">
+                <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-green-500/20 rounded-xl">
-                      <MessageSquare className="h-6 w-6 text-green-300" />
+                    <div className="p-3 bg-green-50 rounded-xl">
+                      <MessageSquare className="h-6 w-6 text-green-600" />
                     </div>
-                    <TrendingUp className="h-4 w-4 text-green-400" />
                   </div>
-                  <p className="text-green-200 text-sm mb-2">Complaints</p>
-                  <p className="text-white text-2xl font-bold">{stats?.complaintCount || 0}</p>
+                  <p className="text-gray-600 text-sm mb-2">Complaints</p>
+                  <p className="text-gray-800 text-2xl font-bold">{stats?.complaintCount || 0}</p>
                 </div>
 
-                <div className="bg-gradient-to-br from-blue-600/20 to-cyan-500/10 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300">
+                <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-blue-500/20 rounded-xl">
-                      <CreditCard className="h-6 w-6 text-blue-300" />
+                    <div className="p-3 bg-blue-50 rounded-xl">
+                      <CreditCard className="h-6 w-6 text-blue-600" />
                     </div>
-                    <TrendingDown className="h-4 w-4 text-red-400" />
                   </div>
-                  <p className="text-blue-200 text-sm mb-2">Fee Status</p>
-                  <div className="text-white font-semibold">{getStatusBadge(student?.feeStatus)}</div>
+                  <p className="text-gray-600 text-sm mb-2">Fee Status</p>
+                  <div className="text-gray-800 font-semibold">{getStatusBadge(student?.feeStatus)}</div>
                 </div>
 
-                <div className="bg-gradient-to-br from-pink-600/20 to-rose-500/10 backdrop-blur-lg rounded-2xl p-6 border border-pink-500/30 hover:shadow-2xl hover:shadow-pink-500/25 transition-all duration-300">
+                <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-pink-500/20 rounded-xl">
-                      <Bed className="h-6 w-6 text-pink-300" />
+                    <div className="p-3 bg-purple-50 rounded-xl">
+                      <Bed className="h-6 w-6 text-purple-600" />
                     </div>
-                    <CheckCircle className="h-4 w-4 text-green-400" />
                   </div>
-                  <p className="text-pink-200 text-sm mb-2">Room</p>
-                  <p className="text-white text-xl font-bold">{student?.room?.roomNumber || 'Not Allocated'}</p>
+                  <p className="text-gray-600 text-sm mb-2">Room</p>
+                  <p className="text-gray-800 text-2xl font-bold">{student?.roomNumber || 'Not Assigned'}</p>
                 </div>
               </div>
 
@@ -168,64 +164,64 @@ const StudentDashboard = () => {
                 <div className="lg:col-span-2 space-y-6">
                   {/* Room & Hostel Info */}
                   {student?.hostel && (
-                    <div className="bg-gradient-to-br from-purple-600/10 to-indigo-600/10 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
+                    <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm">
                       <div className="flex items-center gap-3 mb-6">
-                        <div className="p-3 bg-purple-500/20 rounded-xl">
-                          <Building2 className="h-6 w-6 text-purple-300" />
+                        <div className="p-3 bg-blue-50 rounded-xl">
+                          <Building2 className="h-6 w-6 text-blue-600" />
                         </div>
                         <div>
-                          <h3 className="text-xl font-bold text-white">Current Allocation</h3>
-                          <p className="text-purple-200 text-sm">Your hostel and room details</p>
+                          <h3 className="text-xl font-bold text-gray-800">Current Allocation</h3>
+                          <p className="text-gray-600 text-sm">Your hostel and room details</p>
                         </div>
                       </div>
 
                       <div className="grid sm:grid-cols-2 gap-4">
-                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                          <p className="text-purple-200 text-sm mb-2">Hostel</p>
-                          <p className="text-white font-bold text-lg">{student.hostel.name}</p>
-                          <p className="text-purple-300 text-sm">{student.hostel.code}</p>
+                        <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                          <p className="text-gray-600 text-sm mb-2">Hostel</p>
+                          <p className="text-gray-800 font-bold text-lg">{student.hostel.name}</p>
+                          <p className="text-gray-500 text-sm">{student.hostel.code}</p>
                         </div>
 
-                        <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
-                          <p className="text-purple-200 text-sm mb-2">Room</p>
-                          <p className="text-white font-bold text-lg">{student.room?.roomNumber || 'N/A'}</p>
-                          <p className="text-purple-300 text-sm capitalize">{student.room?.type || 'Not allocated'} Room</p>
+                        <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                          <p className="text-gray-600 text-sm mb-2">Room</p>
+                          <p className="text-gray-800 font-bold text-lg">{student.room?.roomNumber || 'N/A'}</p>
+                          <p className="text-gray-500 text-sm capitalize">{student.room?.type || 'Not allocated'} Room</p>
                         </div>
                       </div>
                     </div>
                   )}
 
                   {/* Fee Summary */}
-                  <div className="bg-gradient-to-br from-blue-600/10 to-cyan-600/10 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
+                  <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-3">
-                        <div className="p-3 bg-blue-500/20 rounded-xl">
-                          <CreditCard className="h-6 w-6 text-blue-300" />
+                        <div className="p-3 bg-blue-50 rounded-xl">
+                          <CreditCard className="h-6 w-6 text-blue-600" />
                         </div>
-                        <h3 className="text-xl font-bold text-white">Fee Summary</h3>
+                        <h3 className="text-xl font-bold text-gray-800">Fee Summary</h3>
                       </div>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => navigate('/student/fees')}
-                        className="border-blue-500/30 text-blue-300 hover:bg-blue-500/20"
+                        className="border-blue-200 text-blue-600 hover:bg-blue-50"
                       >
                         View All
                       </Button>
                     </div>
 
                     <div className="grid sm:grid-cols-3 gap-4">
-                      <div className="bg-green-500/20 backdrop-blur-sm rounded-xl p-4 border border-green-500/30 text-center">
-                        <p className="text-green-300 text-sm font-medium mb-2">Paid</p>
-                        <p className="text-white text-2xl font-bold">₹{stats?.paidFees?.toLocaleString() || 0}</p>
+                      <div className="bg-green-50 rounded-xl p-4 border border-green-200 text-center">
+                        <p className="text-green-600 text-sm font-medium mb-2">Paid</p>
+                        <p className="text-gray-800 text-2xl font-bold">₹{stats?.paidFees?.toLocaleString() || 0}</p>
                       </div>
-                      <div className="bg-red-500/20 backdrop-blur-sm rounded-xl p-4 border border-red-500/30 text-center">
-                        <p className="text-red-300 text-sm font-medium mb-2">Pending</p>
-                        <p className="text-white text-2xl font-bold">₹{stats?.pendingFees?.toLocaleString() || 0}</p>
+                      <div className="bg-red-50 rounded-xl p-4 border border-red-200 text-center">
+                        <p className="text-red-600 text-sm font-medium mb-2">Pending</p>
+                        <p className="text-gray-800 text-2xl font-bold">₹{stats?.pendingFees?.toLocaleString() || 0}</p>
                       </div>
-                      <div className="bg-blue-500/20 backdrop-blur-sm rounded-xl p-4 border border-blue-500/30 text-center">
-                        <p className="text-blue-300 text-sm font-medium mb-2">Total</p>
-                        <p className="text-white text-2xl font-bold">₹{stats?.totalFees?.toLocaleString() || 0}</p>
+                      <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 text-center">
+                        <p className="text-blue-600 text-sm font-medium mb-2">Total</p>
+                        <p className="text-gray-800 text-2xl font-bold">₹{stats?.totalFees?.toLocaleString() || 0}</p>
                       </div>
                     </div>
                   </div>
@@ -233,17 +229,17 @@ const StudentDashboard = () => {
 
                 {/* Right Column - Notifications */}
                 <div className="space-y-6">
-                  <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
+                  <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-3">
-                        <Bell className="h-5 w-5 text-purple-300" />
-                        <h3 className="text-xl font-bold text-white">Notifications</h3>
+                        <Bell className="h-5 w-5 text-blue-600" />
+                        <h3 className="text-xl font-bold text-gray-800">Notifications</h3>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => navigate('/student/notifications')}
-                        className="text-purple-300 hover:text-white hover:bg-white/10"
+                        className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
                       >
                         View All
                       </Button>
@@ -254,24 +250,26 @@ const StudentDashboard = () => {
                         notifications.slice(0, 5).map((notification) => (
                           <div
                             key={notification._id}
-                            className={`p-4 rounded-xl border backdrop-blur-sm transition-all duration-200 ${
+                            className={`p-4 rounded-xl border transition-all duration-200 ${
                               notification.isRead 
-                                ? 'bg-white/10 border-white/20' 
-                                : 'bg-purple-500/20 border-purple-500/30'
+                                ? 'bg-gray-50 border-gray-200' 
+                                : 'bg-blue-50 border-blue-200'
                             }`}
                           >
                             <div className="flex items-start gap-3">
                               <div className={`w-2 h-2 rounded-full mt-2 flex-shrink-0 ${
-                                notification.isRead ? 'bg-purple-400' : 'bg-purple-300'
+                                notification.isRead ? 'bg-gray-400' : 'bg-blue-500'
                               }`} />
                               <div className="flex-1 min-w-0">
-                                <p className="text-white font-medium text-sm line-clamp-1">
+                                <p className={`font-medium text-sm line-clamp-1 ${
+                                  notification.isRead ? 'text-gray-600' : 'text-gray-800'
+                                }`}>
                                   {notification.title}
                                 </p>
-                                <p className="text-purple-200 text-xs line-clamp-2 mt-1">
+                                <p className="text-gray-500 text-xs line-clamp-2 mt-1">
                                   {notification.message}
                                 </p>
-                                <p className="text-purple-300 text-xs mt-2">
+                                <p className="text-gray-400 text-xs mt-2">
                                   {new Date(notification.createdAt).toLocaleDateString()}
                                 </p>
                               </div>
@@ -279,7 +277,7 @@ const StudentDashboard = () => {
                           </div>
                         ))
                       ) : (
-                        <p className="text-center text-purple-200 py-8">No notifications</p>
+                        <p className="text-center text-gray-500 py-8">No notifications</p>
                       )}
                     </div>
                   </div>
@@ -287,40 +285,40 @@ const StudentDashboard = () => {
               </div>
 
               {/* Quick Actions */}
-              <div className="bg-gradient-to-br from-purple-600/10 to-indigo-600/10 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30">
-                <h3 className="text-xl font-bold text-white mb-6">Quick Actions</h3>
+              <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm">
+                <h3 className="text-xl font-bold text-gray-800 mb-6">Quick Actions</h3>
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                   <Button
                     variant="outline"
-                    className="justify-center bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                    className="justify-center border-blue-200 text-blue-600 hover:bg-blue-50 flex flex-col gap-2 py-4 h-auto"
                     leftIcon={FileText}
                     onClick={() => navigate('/student/application')}
                   >
-                    Application
+                    <span className="text-sm">Application</span>
                   </Button>
                   <Button
                     variant="outline"
-                    className="justify-center bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                    className="justify-center border-green-200 text-green-600 hover:bg-green-50 flex flex-col gap-2 py-4 h-auto"
                     leftIcon={MessageSquare}
                     onClick={() => navigate('/student/complaints')}
                   >
-                    Complaints
+                    <span className="text-sm">Complaints</span>
                   </Button>
                   <Button
                     variant="outline"
-                    className="justify-center bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                    className="justify-center border-purple-200 text-purple-600 hover:bg-purple-50 flex flex-col gap-2 py-4 h-auto"
                     leftIcon={CreditCard}
                     onClick={() => navigate('/student/fees')}
                   >
-                    Fees
+                    <span className="text-sm">Fees</span>
                   </Button>
                   <Button
                     variant="outline"
-                    className="justify-center bg-white/10 border-white/20 text-white hover:bg-white/20 hover:text-white"
+                    className="justify-center border-orange-200 text-orange-600 hover:bg-orange-50 flex flex-col gap-2 py-4 h-auto"
                     leftIcon={User}
                     onClick={() => navigate('/student/profile')}
                   >
-                    Profile
+                    <span className="text-sm">Profile</span>
                   </Button>
                 </div>
               </div>

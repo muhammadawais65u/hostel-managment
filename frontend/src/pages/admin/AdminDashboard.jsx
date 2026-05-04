@@ -92,13 +92,29 @@ const AdminDashboard = () => {
             <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
             <p className="text-blue-200">Overview of hostel management system</p>
           </div>
-          <Button
-            onClick={() => navigate('/admin/users')}
-            leftIcon={UserPlus}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg"
-          >
-            Manage Users
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              onClick={() => navigate('/admin/room-requests')}
+              leftIcon={FileText}
+              className="bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white border-0 shadow-lg"
+            >
+              Room Requests
+            </Button>
+            <Button
+              onClick={() => navigate('/admin/rooms')}
+              leftIcon={DoorOpen}
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white border-0 shadow-lg"
+            >
+              Manage Rooms
+            </Button>
+            <Button
+              onClick={() => navigate('/admin/users')}
+              leftIcon={UserPlus}
+              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white border-0 shadow-lg"
+            >
+              Manage Users
+            </Button>
+          </div>
         </div>
       </div>
 

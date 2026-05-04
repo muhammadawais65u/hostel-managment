@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   Bed, 
   Users, 
@@ -16,13 +16,61 @@ import {
   Heart,
   ArrowRight,
   X,
-  ChevronDown
+  ChevronDown,
+  Loader2
 } from 'lucide-react';
+import { roomAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 const Rooms = () => {
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [selectedType, setSelectedType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [rooms, setRooms] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    fetchRooms();
+  }, []);
+
+  const fetchRooms = async () => {
+    try {
+      setLoading(true);
+      const response = await roomAPI.getAll({ available: true });
+      setRooms(response.data.data || []);
+      setError('');
+    } catch (err) {
+      setError('Failed to load rooms. Please try again later.');
+      console.error('Error fetching rooms:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBookNow = (roomId) => {
+    if (!user) {
+      // User not logged in, redirect to login
+      navigate('/login');
+      return;
+    }
+    
+    if (user.role === 'student') {
+      // Student logged in, redirect to application page
+      navigate('/student/application');
+    } else if (user.role === 'admin') {
+      // Admin logged in, redirect to admin rooms page
+      navigate('/admin/rooms');
+    } else if (user.role === 'warden') {
+      // Warden logged in, redirect to warden dashboard
+      navigate('/warden/dashboard');
+    } else {
+      // Default fallback
+      navigate('/login');
+    }
+  };
 
   const roomTypes = [
     { id: 'all', name: 'All Rooms' },
@@ -41,121 +89,36 @@ const Rooms = () => {
     security: { icon: Shield, name: '24/7 Security' }
   };
 
-  const rooms = [
-    {
-      id: 1,
-      name: 'Deluxe Single Room',
-      type: 'single',
-      price: 3500,
-      originalPrice: 4000,
-      capacity: 1,
-      available: 5,
-      total: 20,
-      rating: 4.8,
-      reviews: 124,
-      image: 'single-room',
-      location: 'Block A, Floor 1',
-      amenities: ['wifi', 'ac', 'tv', 'security'],
-      featured: true,
-      description: 'Comfortable single room with modern amenities and study area'
-    },
-    {
-      id: 2,
-      name: 'Standard Double Room',
-      type: 'double',
-      price: 2500,
-      originalPrice: 3000,
-      capacity: 2,
-      available: 8,
-      total: 30,
-      rating: 4.6,
-      reviews: 89,
-      image: 'double-room',
-      location: 'Block B, Floor 2',
-      amenities: ['wifi', 'ac', 'security'],
-      featured: false,
-      description: 'Spacious double room perfect for sharing with study desk and wardrobe'
-    },
-    {
-      id: 3,
-      name: 'Premium Triple Room',
-      type: 'triple',
-      price: 2000,
-      originalPrice: 2400,
-      capacity: 3,
-      available: 3,
-      total: 25,
-      rating: 4.5,
-      reviews: 67,
-      image: 'triple-room',
-      location: 'Block C, Floor 1',
-      amenities: ['wifi', 'ac', 'kitchen', 'security'],
-      featured: false,
-      description: 'Economical triple sharing room with kitchenette and common area'
-    },
-    {
-      id: 4,
-      name: 'Executive Suite',
-      type: 'suite',
-      price: 8000,
-      originalPrice: 10000,
-      capacity: 2,
-      available: 2,
-      total: 10,
-      rating: 4.9,
-      reviews: 45,
-      image: 'suite-room',
-      location: 'Block D, Floor 3',
-      amenities: ['wifi', 'ac', 'tv', 'kitchen', 'parking', 'security'],
-      featured: true,
-      description: 'Luxury suite with separate living area, kitchen, and premium amenities'
-    },
-    {
-      id: 5,
-      name: 'Budget Single Room',
-      type: 'single',
-      price: 2000,
-      originalPrice: 2500,
-      capacity: 1,
-      available: 12,
-      total: 40,
-      rating: 4.2,
-      reviews: 156,
-      image: 'budget-single',
-      location: 'Block E, Floor 1',
-      amenities: ['wifi', 'security'],
-      featured: false,
-      description: 'Affordable single room with basic amenities and shared bathroom'
-    },
-    {
-      id: 6,
-      name: 'Comfort Double Room',
-      type: 'double',
-      price: 3000,
-      originalPrice: 3500,
-      capacity: 2,
-      available: 6,
-      total: 35,
-      rating: 4.7,
-      reviews: 98,
-      image: 'comfort-double',
-      location: 'Block A, Floor 3',
-      amenities: ['wifi', 'ac', 'tv', 'security'],
-      featured: false,
-      description: 'Well-ventilated double room with balcony and study area'
-    }
-  ];
-
   const filteredRooms = rooms.filter(room => {
-    const matchesType = selectedType === 'all' || room.type === selectedType;
-    const matchesSearch = room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         room.description.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesPrice = room.price >= priceRange[0] && room.price <= priceRange[1];
+    const roomType = room.type || 'standard';
+    const roomName = (room.name || room.roomNumber || '').toLowerCase();
+    const roomDesc = (room.description || '').toLowerCase();
+    const roomPrice = room.price || room.monthlyRent || 0;
+
+    const matchesType = selectedType === 'all' || roomType === selectedType;
+    const matchesSearch = roomName.includes(searchTerm.toLowerCase()) ||
+                         roomDesc.includes(searchTerm.toLowerCase());
+    const matchesPrice = roomPrice >= priceRange[0] && roomPrice <= priceRange[1];
     return matchesType && matchesSearch && matchesPrice;
   });
 
   const RoomCard = ({ room }) => {
     const [isLiked, setIsLiked] = useState(false);
+
+    // Handle API data format with fallbacks
+    const roomId = room._id || room.id;
+    const roomName = room.name || room.roomNumber || `Room ${roomId}`;
+    const roomType = room.type || 'standard';
+    const roomPrice = room.price || room.monthlyRent || 0;
+    const roomCapacity = room.capacity || 1;
+    const roomAvailable = room.available !== undefined ? room.available : room.vacant || 0;
+    const roomTotal = room.total || room.totalBeds || roomCapacity;
+    const roomLocation = room.location || (room.hostel?.name ? `${room.hostel.name}` : 'Main Block');
+    const roomAmenities = room.amenities || room.facilities || ['wifi', 'security'];
+    const roomRating = room.rating || 4.5;
+    const roomReviews = room.reviews || Math.floor(Math.random() * 100) + 20;
+    const roomDescription = room.description || `${roomType} room with ${roomCapacity} bed(s), suitable for students.`;
+    const isFeatured = room.featured || roomPrice > 5000;
 
     return (
       <div className="card overflow-hidden hover:shadow-lg transition-shadow duration-300">
@@ -164,28 +127,28 @@ const Rooms = () => {
           <div className="h-48 bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
             <Bed className="h-16 w-16 text-primary-400" />
           </div>
-          
+
           {/* Featured Badge */}
-          {room.featured && (
+          {isFeatured && (
             <div className="absolute top-4 left-4 bg-primary-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
               Featured
             </div>
           )}
-          
+
           {/* Like Button */}
           <button
             onClick={() => setIsLiked(!isLiked)}
             className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:shadow-lg transition-shadow"
           >
-            <Heart 
-              className={`h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-secondary-400'}`} 
+            <Heart
+              className={`h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-secondary-400'}`}
             />
           </button>
 
           {/* Availability Badge */}
           <div className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded-full text-xs font-medium">
-            {room.available > 0 ? (
-              <span className="text-green-600">{room.available} Available</span>
+            {roomAvailable > 0 ? (
+              <span className="text-green-600">{roomAvailable} Available</span>
             ) : (
               <span className="text-red-600">Fully Booked</span>
             )}
@@ -196,48 +159,50 @@ const Rooms = () => {
         <div className="p-6">
           <div className="flex justify-between items-start mb-3">
             <div>
-              <h3 className="text-xl font-semibold text-secondary-900 mb-1">{room.name}</h3>
+              <h3 className="text-xl font-semibold text-secondary-900 mb-1">{roomName}</h3>
               <div className="flex items-center text-secondary-500 text-sm mb-2">
                 <MapPin className="h-4 w-4 mr-1" />
-                {room.location}
+                {roomLocation}
               </div>
             </div>
             <div className="text-right">
               <div className="flex items-center gap-1 mb-1">
                 <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="font-semibold text-secondary-900">{room.rating}</span>
+                <span className="font-semibold text-secondary-900">{roomRating}</span>
               </div>
-              <div className="text-xs text-secondary-500">({room.reviews} reviews)</div>
+              <div className="text-xs text-secondary-500">({roomReviews} reviews)</div>
             </div>
           </div>
 
-          <p className="text-secondary-600 text-sm mb-4 line-clamp-2">{room.description}</p>
+          <p className="text-secondary-600 text-sm mb-4 line-clamp-2">{roomDescription}</p>
 
           {/* Capacity & Availability */}
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4 text-sm text-secondary-600">
               <div className="flex items-center gap-1">
                 <Users className="h-4 w-4" />
-                <span>{room.capacity} Person</span>
+                <span>{roomCapacity} Person</span>
               </div>
               <div className="flex items-center gap-1">
                 <Bed className="h-4 w-4" />
-                <span>{room.available}/{room.total} Available</span>
+                <span>{roomAvailable}/{roomTotal} Available</span>
               </div>
             </div>
           </div>
 
           {/* Amenities */}
           <div className="flex flex-wrap gap-2 mb-4">
-            {room.amenities.map((amenity, index) => {
-              const IconComponent = amenities[amenity].icon;
+            {roomAmenities.slice(0, 4).map((amenity, index) => {
+              const amenityKey = typeof amenity === 'string' ? amenity.toLowerCase() : 'wifi';
+              const IconComponent = amenities[amenityKey]?.icon || Wifi;
+              const amenityName = amenities[amenityKey]?.name || amenity;
               return (
-                <div 
+                <div
                   key={index}
                   className="flex items-center gap-1 text-xs text-secondary-600 bg-secondary-50 px-2 py-1 rounded"
                 >
                   <IconComponent className="h-3 w-3" />
-                  <span>{amenities[amenity].name}</span>
+                  <span>{amenityName}</span>
                 </div>
               );
             })}
@@ -247,19 +212,17 @@ const Rooms = () => {
           <div className="flex items-center justify-between pt-4 border-t border-secondary-100">
             <div>
               <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-secondary-900">₹{room.price}</span>
-                <span className="text-sm text-secondary-500 line-through">₹{room.originalPrice}</span>
-                <span className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded">Save ₹{room.originalPrice - room.price}</span>
+                <span className="text-2xl font-bold text-secondary-900">₹{roomPrice}</span>
+                <span className="text-xs text-secondary-500">per month</span>
               </div>
-              <div className="text-xs text-secondary-500">per month</div>
             </div>
-            <Link 
-              to={`/contact?room=${room.id}`}
+            <button
+              onClick={() => handleBookNow(roomId)}
               className="btn-primary flex items-center gap-2"
             >
               Book Now
               <ArrowRight className="h-4 w-4" />
-            </Link>
+            </button>
           </div>
         </div>
       </div>
@@ -417,19 +380,48 @@ const Rooms = () => {
             </div>
           </div>
 
-          {/* Rooms Grid */}
-          {filteredRooms.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-              {filteredRooms.map((room) => (
-                <RoomCard key={room.id} room={room} />
-              ))}
+          {/* Loading State */}
+          {loading && (
+            <div className="flex items-center justify-center py-16">
+              <div className="text-center">
+                <Loader2 className="h-12 w-12 text-primary-600 animate-spin mx-auto mb-4" />
+                <p className="text-secondary-600">Loading rooms...</p>
+              </div>
             </div>
-          ) : (
+          )}
+
+          {/* Error State */}
+          {error && !loading && (
             <div className="text-center py-16">
-              <Bed className="h-16 w-16 text-secondary-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-secondary-900 mb-2">No rooms found</h3>
-              <p className="text-secondary-600">Try adjusting your filters or search terms</p>
+              <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
+                <p className="text-red-600 mb-4">{error}</p>
+                <button
+                  onClick={fetchRooms}
+                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                >
+                  Try Again
+                </button>
+              </div>
             </div>
+          )}
+
+          {/* Rooms Grid */}
+          {!loading && !error && (
+            <>
+              {filteredRooms.length > 0 ? (
+                <div className="grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                  {filteredRooms.map((room) => (
+                    <RoomCard key={room._id || room.id} room={room} />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-16">
+                  <Bed className="h-16 w-16 text-secondary-300 mx-auto mb-4" />
+                  <h3 className="text-xl font-semibold text-secondary-900 mb-2">No rooms found</h3>
+                  <p className="text-secondary-600">Try adjusting your filters or search terms</p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
