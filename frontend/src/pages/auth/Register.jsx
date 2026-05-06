@@ -30,7 +30,7 @@ const Register = () => {
     // Student details
     rollNumber: '',
     department: '',
-    course: '',
+    semester: '',
     year: '',
     gender: '',
   });
@@ -131,7 +131,7 @@ const Register = () => {
   };
 
   const validateStep2 = () => {
-    if (!formData.rollNumber || !formData.department || !formData.course || !formData.year || !formData.gender) {
+    if (!formData.rollNumber || !formData.department || !formData.semester || !formData.year || !formData.gender) {
       setError('Please fill in all required fields');
       return false;
     }
@@ -169,7 +169,7 @@ const Register = () => {
     
     // For students, validate academic fields
     if (formData.role === 'student') {
-      if (!formData.rollNumber || !formData.department || !formData.course || !formData.year || !formData.gender) {
+      if (!formData.rollNumber || !formData.department || !formData.semester || !formData.year || !formData.gender) {
         setError('Please fill in all required academic information fields');
         return;
       }
@@ -193,7 +193,15 @@ const Register = () => {
       setIsLoading(false);
     }
   };
-
+const semesterOptions = [
+  { value: '1', label: 'Semester 1' },
+  { value: '2', label: 'Semester 2' },
+  { value: '3', label: 'Semester 3' },
+  { value: '4', label: 'Semester 4' },
+  { value: '5', label: 'Semester 5' },
+  { value: '6', label: 'Semester 6' },
+  { value: '7', label: 'Semester 7' },
+];
   const yearOptions = [
     { value: '1', label: '1st Year' },
     { value: '2', label: '2nd Year' },
@@ -283,6 +291,15 @@ const Register = () => {
                         <label className="w-28 text-sm font-medium text-gray-700 shrink-0">Phone</label>
                         <input type="tel" name="phone" value={formData.phone} onChange={handleChange} placeholder="Phone number" className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
                       </div>
+                         <div className="flex items-center gap-3">
+                        <label className="w-28 text-sm font-medium text-gray-700 shrink-0">Gender</label>
+                        <select name="gender" value={formData.gender} onChange={handleChange} required className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
+                          <option value="">Select Gender</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
 
@@ -293,14 +310,36 @@ const Register = () => {
                         <label className="w-28 text-sm font-medium text-gray-700 shrink-0">Roll Number</label>
                         <input type="text" name="rollNumber" value={formData.rollNumber} onChange={handleChange} required placeholder="Roll number" className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
                       </div>
-                      <div className="flex items-center gap-3">
-                        <label className="w-28 text-sm font-medium text-gray-700 shrink-0">Department</label>
-                        <input type="text" name="department" value={formData.department} onChange={handleChange} required placeholder="Department" className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <label className="w-28 text-sm font-medium text-gray-700 shrink-0">Course</label>
-                        <input type="text" name="course" value={formData.course} onChange={handleChange} required placeholder="Course" className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
-                      </div>
+                     <div className="flex items-center gap-3">
+  <label className="w-28 text-sm font-medium text-gray-700 shrink-0">Department</label>
+  <select
+    name="department"
+    value={formData.department}
+    onChange={handleChange}
+    required
+    className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+  >
+    <option value="">Select Department</option>
+    {departmentOptions.map((opt) => (
+      <option key={opt.value} value={opt.value}>{opt.label}</option>
+    ))}
+  </select>
+</div>
+                    <div className="flex items-center gap-3">
+  <label className="w-28 text-sm font-medium text-gray-700 shrink-0">Semester</label>
+  <select
+    name="semester"
+    value={formData.semester}
+    onChange={handleChange}
+    required
+    className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+  >
+    <option value="">Select Semester</option>
+    {semesterOptions.map((opt) => (
+      <option key={opt.value} value={opt.value}>{opt.label}</option>
+    ))}
+  </select>
+</div>
                       <div className="flex items-center gap-3">
                         <label className="w-28 text-sm font-medium text-gray-700 shrink-0">Year</label>
                         <select name="year" value={formData.year} onChange={handleChange} required className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
@@ -308,15 +347,7 @@ const Register = () => {
                           {yearOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
                         </select>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <label className="w-28 text-sm font-medium text-gray-700 shrink-0">Gender</label>
-                        <select name="gender" value={formData.gender} onChange={handleChange} required className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                          <option value="">Select Gender</option>
-                          <option value="male">Male</option>
-                          <option value="female">Female</option>
-                          <option value="other">Other</option>
-                        </select>
-                      </div>
+                   
                     </div>
                   </div>
 

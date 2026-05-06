@@ -11,6 +11,8 @@ router.use(protect);
 // @desc    Submit hostel application
 // @access  Private (Student)
 router.post('/', authorize('student'), applicationValidation, async (req, res) => {
+  console.log('Application Request - User:', req.user.id);
+  console.log('Application Request - Body:', JSON.stringify(req.body, null, 2));
   try {
     const student = await Student.findOne({ user: req.user.id });
 
@@ -34,36 +36,24 @@ router.post('/', authorize('student'), applicationValidation, async (req, res) =
       });
     }
 
-    // Check if hostel exists
-    const hostel = await Hostel.findById(req.body.hostel);
-    if (!hostel) {
-      return res.status(404).json({
-        success: false,
-        message: 'Hostel not found'
-      });
-    }
-
     // Check if preferred room exists (if specified)
     let preferredRoom = null;
     if (req.body.preferredRoom) {
       preferredRoom = await Room.findById(req.body.preferredRoom);
-      if (!preferredRoom || preferredRoom.hostel.toString() !== req.body.hostel) {
-        return res.status(400).json({
-          success: false,
-          message: 'Invalid preferred room'
-        });
-      }
     }
 
     // Create application
     const application = await Application.create({
       student: student._id,
       user: req.user.id,
-      hostel: req.body.hostel,
       roomType: req.body.roomType || 'any',
       preferredRoom: req.body.preferredRoom || null,
       semester: req.body.semester,
       academicYear: req.body.academicYear,
+      emergencyContact: req.body.emergencyContact,
+      purposeOfStay: req.body.purposeOfStay,
+      specialRequirements: req.body.specialRequirements || '',
+      documents: req.body.documents || {},
       remarks: req.body.remarks || ''
     });
 
@@ -75,7 +65,7 @@ router.post('/', authorize('student'), applicationValidation, async (req, res) =
     await Notification.create({
       user: req.user.id,
       title: 'Application Submitted',
-      message: `Your hostel application for ${hostel.name} has been submitted and is pending review.`,
+      message: `Your application has been submitted and is pending review.`,
       type: 'application',
       relatedTo: { model: 'Application', id: application._id }
     });
@@ -86,7 +76,7 @@ router.post('/', authorize('student'), applicationValidation, async (req, res) =
       await Notification.create({
         user: admin._id,
         title: 'New Application Received',
-        message: `A new hostel application has been submitted by ${req.user.name}.`,
+        message: `A new application has been submitted by ${req.user.name}.`,
         type: 'application',
         relatedTo: { model: 'Application', id: application._id }
       });

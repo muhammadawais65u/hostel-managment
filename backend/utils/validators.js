@@ -4,6 +4,8 @@ const { body, validationResult } = require('express-validator');
 const validate = (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
+    console.log('Validation Errors:', JSON.stringify(errors.array(), null, 2));
+    console.log('Request Body:', JSON.stringify(req.body, null, 2));
     return res.status(400).json({
       success: false,
       message: 'Validation failed',
@@ -53,11 +55,6 @@ const studentValidation = [
   body('department')
     .trim()
     .notEmpty().withMessage('Department is required'),
-  body('course')
-    .trim()
-    .notEmpty().withMessage('Course is required'),
-  body('year')
-    .isInt({ min: 1, max: 6 }).withMessage('Year must be between 1 and 6'),
   body('gender')
     .isIn(['male', 'female', 'other']).withMessage('Invalid gender'),
   validate
@@ -65,17 +62,45 @@ const studentValidation = [
 
 // Application validation
 const applicationValidation = [
-  body('hostel')
-    .notEmpty().withMessage('Hostel is required'),
   body('roomType')
     .optional()
     .isIn(['single', 'double', 'triple', 'quad', 'any']).withMessage('Invalid room type'),
+  body('preferredRoom')
+    .optional(),
   body('semester')
     .trim()
     .notEmpty().withMessage('Semester is required'),
   body('academicYear')
     .trim()
     .notEmpty().withMessage('Academic year is required'),
+  body('emergencyContact.name')
+    .trim()
+    .notEmpty().withMessage('Emergency contact name is required'),
+  body('emergencyContact.relationship')
+    .trim()
+    .notEmpty().withMessage('Emergency contact relationship is required'),
+  body('emergencyContact.phone')
+    .trim()
+    .notEmpty().withMessage('Emergency contact phone is required'),
+  body('purposeOfStay')
+    .trim()
+    .notEmpty().withMessage('Purpose of stay is required')
+    .isIn(['education', 'job', 'internship', 'training', 'other']).withMessage('Invalid purpose of stay'),
+  body('specialRequirements')
+    .optional()
+    .trim(),
+  body('documents.idProof.name')
+    .optional()
+    .trim(),
+  body('documents.addressProof.name')
+    .optional()
+    .trim(),
+  body('documents.previousMarks.name')
+    .optional()
+    .trim(),
+  body('remarks')
+    .optional()
+    .trim(),
   validate
 ];
 

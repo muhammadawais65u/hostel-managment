@@ -12,13 +12,23 @@ export const AuthProvider = ({ children }) => {
     // Check for stored token and validate it
     const checkAuth = async () => {
       const token = localStorage.getItem('token');
-      if (token) {
+      const storedUser = localStorage.getItem('user');
+      
+      if (token && storedUser) {
         try {
-          const response = await authAPI.getMe();
-          setUser(response.data.user);
+          // First set user from localStorage for immediate UI
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+          
+          // Skip API validation on initial load to avoid 401 redirect loops
+          // The user will be validated on their first API request
+          console.log('Session restored from localStorage');
+          
         } catch (err) {
+          // Only clear session if localStorage data is corrupted
           localStorage.removeItem('token');
           localStorage.removeItem('user');
+          setUser(null);
         }
       }
       setLoading(false);

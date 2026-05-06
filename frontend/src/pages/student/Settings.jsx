@@ -37,7 +37,7 @@ const Settings = () => {
     phone: '',
     rollNumber: '',
     department: '',
-    course: '',
+    semester: '',
     year: '',
     gender: ''
   });
@@ -71,7 +71,7 @@ const Settings = () => {
         phone: data.phone || '',
         rollNumber: data.rollNumber || '',
         department: data.department || '',
-        course: data.course || '',
+        semester: data.semester || '',
         year: data.year || '',
         gender: data.gender || ''
       });
@@ -270,10 +270,10 @@ const Settings = () => {
                   </div>
                   
                   <div>
-                    <label className="block text-purple-200 text-sm font-medium mb-2">Course</label>
+                    <label className="block text-purple-200 text-sm font-medium mb-2">semester</label>
                     <input
                       type="text"
-                      value={profileData.course}
+                      value={profileData.semester}
                       disabled
                       className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white/50"
                     />

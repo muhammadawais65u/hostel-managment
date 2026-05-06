@@ -80,7 +80,11 @@ const App = () => {
           {/* Student Routes */}
           <Route
             path="/student/*"
-            element={<StudentLayout />}
+            element={
+              <ProtectedRoute allowedRoles={['student']}>
+                <StudentLayout />
+              </ProtectedRoute>
+            }
           >
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="application" element={<Application />} />
@@ -100,7 +104,11 @@ const App = () => {
           {/* Admin Routes */}
           <Route
             path="/admin/*"
-            element={<AdminLayout />}
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
           >
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
@@ -119,7 +127,11 @@ const App = () => {
           {/* Warden Routes */}
           <Route
             path="/warden/*"
-            element={<WardenLayout />}
+            element={
+              <ProtectedRoute allowedRoles={['warden']}>
+                <WardenLayout />
+              </ProtectedRoute>
+            }
           >
             <Route path="dashboard" element={<WardenDashboard />} />
             <Route path="hostels" element={<PlaceholderPage title="My Hostels" />} />

@@ -44,7 +44,11 @@ const StudentDashboard = () => {
       const response = await studentAPI.getDashboard();
       setData(response.data.data);
     } catch (err) {
-      setError('Failed to load dashboard data');
+      console.error('Dashboard data fetch error:', err);
+      // Don't set error message for 401 as it will be handled by interceptor
+      if (err.response?.status !== 401) {
+        setError('Failed to load dashboard data');
+      }
     } finally {
       setLoading(false);
     }

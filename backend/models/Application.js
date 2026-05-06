@@ -11,11 +11,6 @@ const applicationSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  hostel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Hostel',
-    required: true
-  },
   roomType: {
     type: String,
     enum: ['single', 'double', 'triple', 'quad', 'any'],
@@ -31,30 +26,59 @@ const applicationSchema = new mongoose.Schema({
     enum: ['pending', 'approved', 'rejected', 'waitlisted'],
     default: 'pending'
   },
-  documents: [{
-    name: String,
-    url: String,
-    uploadedAt: {
-      type: Date,
-      default: Date.now
+  emergencyContact: {
+    name: {
+      type: String,
+      required: [true, 'Emergency contact name is required']
+    },
+    relationship: {
+      type: String,
+      required: [true, 'Relationship is required']
+    },
+    phone: {
+      type: String,
+      required: [true, 'Emergency contact phone is required']
     }
-  }],
+  },
+  purposeOfStay: {
+    type: String,
+    enum: ['education', 'job', 'internship', 'training', 'other'],
+    required: [true, 'Purpose of stay is required']
+  },
+  specialRequirements: {
+    type: String,
+    trim: true,
+    default: ''
+  },
+  documents: {
+    idProof: {
+      name: String,
+      url: String,
+      uploadedAt: {
+        type: Date,
+        default: Date.now
+      }
+    },
+    addressProof: {
+      name: String,
+      url: String,
+      uploadedAt: {
+        type: Date,
+        default: Date.now
+      }
+    },
+    previousMarks: {
+      name: String,
+      url: String,
+      uploadedAt: {
+        type: Date,
+        default: Date.now
+      }
+    }
+  },
   remarks: {
     type: String,
     trim: true
-  },
-  adminRemarks: {
-    type: String,
-    trim: true
-  },
-  processedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    default: null
-  },
-  processedAt: {
-    type: Date,
-    default: null
   },
   semester: {
     type: String,

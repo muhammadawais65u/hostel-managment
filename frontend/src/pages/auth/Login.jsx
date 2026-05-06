@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Building2, Mail, Lock, Eye, EyeOff, AlertCircle, Users, CheckCircle, ArrowLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/ui/Button';
@@ -9,6 +9,9 @@ import Card from '../../components/ui/Card';
 
 const Login = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect') || location.state?.redirect;
   const { login } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -35,8 +38,18 @@ const Login = () => {
     const result = await login(formData.email, formData.password);
 
     if (result.success) {
-      // Redirect based on role
       const { user } = result;
+      // If redirect param exists, go there with state (for book now flow)
+      if (redirectTo) {
+        navigate(redirectTo, { 
+          state: location.state ? {
+            selectedRoom: location.state.selectedRoom,
+            selectedRoomId: location.state.selectedRoomId
+          } : undefined
+        });
+        return;
+      }
+      // Otherwise redirect based on role
       if (user.role === 'admin') {
         navigate('/admin/dashboard');
       } else if (user.role === 'warden') {

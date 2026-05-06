@@ -10,7 +10,7 @@ const { sendOTPEmail, sendWelcomeEmail } = require('../utils/emailService');
 // @access  Public
 router.post('/register', registerValidation, async (req, res) => {
   try {
-    const { name, email, password, phone, rollNumber, department, course, year, gender } = req.body;
+    const { name, email, password, phone, rollNumber, department, semester, year, gender } = req.body;
 
     // Check if user exists
     const userExists = await User.findOne({ email });
@@ -48,7 +48,7 @@ router.post('/register', registerValidation, async (req, res) => {
         user: user._id,
         rollNumber,
         department,
-        course,
+        semester,
         year,
         gender
       });

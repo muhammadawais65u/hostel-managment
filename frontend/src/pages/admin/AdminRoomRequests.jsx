@@ -426,9 +426,9 @@ const AdminRoomRequests = () => {
                     </p>
                   </div>
                   <div className="bg-gray-50 rounded-xl p-4">
-                    <p className="text-sm text-gray-600 mb-1">Course</p>
+                    <p className="text-sm text-gray-600 mb-1">semester</p>
                     <p className="font-semibold text-gray-900">
-                      {selectedRequest.student?.course || 'N/A'}
+                      {selectedRequest.student?.semester || 'N/A'}
                     </p>
                   </div>
                 </div>

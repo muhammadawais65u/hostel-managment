@@ -41,10 +41,14 @@ const Application = () => {
 
   // Get pre-selected room from navigation state
   const preSelectedRoom = location.state?.selectedRoom;
+  const preSelectedRoomId = location.state?.selectedRoomId;
 
   const [formData, setFormData] = useState({
     roomType: '',
     selectedRoom: '',
+    purposeOfStay: '',
+    semester: '',
+    academicYear: '',
     specialRequirements: '',
     emergencyContact: {
       name: '',
@@ -70,13 +74,21 @@ const Application = () => {
     fetchRooms();
   }, []);
 
-  // Pre-select room if passed from Rooms page
+  // Pre-select room if passed from Rooms page or RoomDetail page
   useEffect(() => {
-    if (preSelectedRoom && rooms.length > 0) {
-      handleRoomSelection(preSelectedRoom);
-      setShowForm(true);
+    if (rooms.length > 0) {
+      if (preSelectedRoom) {
+        handleRoomSelection(preSelectedRoom);
+        setShowForm(true);
+      } else if (preSelectedRoomId) {
+        const room = rooms.find(r => r._id === preSelectedRoomId);
+        if (room) {
+          handleRoomSelection(room);
+          setShowForm(true);
+        }
+      }
     }
-  }, [preSelectedRoom, rooms]);
+  }, [preSelectedRoom, preSelectedRoomId, rooms]);
 
   const fetchRooms = async () => {
     try {
@@ -104,12 +116,19 @@ const Application = () => {
     setError('');
     setSuccess('');
 
+    console.log('=== FORM SUBMISSION DEBUG ===');
+    console.log('Form Data:', JSON.stringify(formData, null, 2));
+    console.log('User Auth:', localStorage.getItem('token') ? 'Authenticated' : 'Not Authenticated');
+
     try {
       const response = await studentAPI.submitApplication(formData);
+      console.log('API Response:', response);
       setSuccess('Application submitted successfully!');
       setShowForm(false);
       fetchApplicationData();
     } catch (err) {
+      console.error('Submission Error:', err);
+      console.error('Error Response:', err.response?.data);
       setError('Failed to submit application');
     } finally {
       setSubmitting(false);
@@ -234,45 +253,8 @@ const Application = () => {
             </div>
           )}
 
-          {/* User Information Display */}
-          {user && (
-            <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Information</h2>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                  <p className="text-gray-600 text-sm mb-2">Name</p>
-                  <p className="text-gray-800 font-semibold">{user.name}</p>
-                </div>
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                  <p className="text-gray-600 text-sm mb-2">Email</p>
-                  <p className="text-gray-800 font-semibold">{user.email}</p>
-                </div>
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                  <p className="text-gray-600 text-sm mb-2">Phone</p>
-                  <p className="text-gray-800 font-semibold">{user.phone || 'Not provided'}</p>
-                </div>
-                {user.studentInfo && (
-                  <>
-                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                      <p className="text-gray-600 text-sm mb-2">Roll Number</p>
-                      <p className="text-gray-800 font-semibold">{user.studentInfo.rollNumber}</p>
-                    </div>
-                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                      <p className="text-gray-600 text-sm mb-2">Department</p>
-                      <p className="text-gray-800 font-semibold">{user.studentInfo.department}</p>
-                    </div>
-                    <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                      <p className="text-gray-600 text-sm mb-2">Course</p>
-                      <p className="text-gray-800 font-semibold">{user.studentInfo.course}</p>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Existing Application */}
-          {applicationData && !showForm && (
+          {/* Existing Application - only show if valid application exists */}
+          {applicationData?._id && !showForm && (
             <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-800">Your Application</h2>
@@ -352,249 +334,330 @@ const Application = () => {
                 )}
               </div>
 
-              <form onSubmit={handleSubmit} className="space-y-6">
-                {/* Room Selection Section */}
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-4">Select a Room</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {rooms.map((room) => (
-                      <label key={room._id} className="cursor-pointer">
-                        <input
-                          type="radio"
-                          name="selectedRoom"
-                          value={room._id}
-                          checked={formData.selectedRoom === room._id}
-                          onChange={() => handleRoomSelection(room)}
-                          className="sr-only"
-                        />
-                        <div className={`p-4 rounded-xl border transition-all cursor-pointer ${
-                          formData.selectedRoom === room._id
-                            ? 'bg-blue-50 border-blue-500 shadow-md'
-                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                        }`}>
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2">
-                              <Bed className="h-5 w-5 text-blue-600" />
-                              <span className="font-semibold text-gray-800">{room.roomNumber || `Room ${room._id}`}</span>
-                            </div>
-                            <span className="text-green-600 font-bold">₹{room.price || room.monthlyRent || 0}/mo</span>
-                          </div>
-                          <div className="text-sm text-gray-600 mb-2">
-                            <p>Type: {roomTypes.find(t => t.value === room.type)?.label || room.type}</p>
-                            <p>Capacity: {room.capacity || 1} person(s)</p>
-                            <p>Available: {(room.available || room.vacant || 0)}/{room.capacity || 1}</p>
-                          </div>
-                          <div className="flex flex-wrap gap-2 mb-2">
-                            {getRoomAmenities(room)}
-                          </div>
-                          {room.floor && (
-                            <p className="text-xs text-gray-500">Floor {room.floor}</p>
-                          )}
-                        </div>
-                      </label>
-                    ))}
+              <form onSubmit={handleSubmit} className="space-y-8">
+
+                {/* ============ SECTION 1: ROOM INFORMATION ============ */}
+                <div className="bg-blue-50/50 rounded-2xl p-6 border border-blue-100">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Bed className="h-5 w-5 text-blue-600" />
+                    <h3 className="text-lg font-bold text-gray-800">1. Room Information</h3>
                   </div>
-                  {rooms.length === 0 && (
-                    <div className="text-center py-8 bg-gray-50 rounded-xl">
-                      <Bed className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-600">No available rooms found</p>
+                  {selectedRoom || preSelectedRoom ? (
+                    <div className="bg-white rounded-xl p-5 border border-blue-200 shadow-sm">
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Room Number</p>
+                          <p className="font-semibold text-gray-900">
+                            {(selectedRoom || preSelectedRoom).roomNumber || `Room ${(selectedRoom || preSelectedRoom)._id}`}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Room Type</p>
+                          <p className="font-semibold text-gray-900 capitalize">
+                            {(selectedRoom || preSelectedRoom).type || 'Standard'}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Monthly Rent</p>
+                          <p className="font-semibold text-green-600">
+                            PKR {(selectedRoom || preSelectedRoom).price || (selectedRoom || preSelectedRoom).rentPerMonth || 0}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Floor</p>
+                          <p className="font-semibold text-gray-900">
+                            Floor {(selectedRoom || preSelectedRoom).floor || 1}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Capacity</p>
+                          <p className="font-semibold text-gray-900">
+                            {(selectedRoom || preSelectedRoom).capacity || 1} Person(s)
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Available Beds</p>
+                          <p className="font-semibold text-green-600">
+                            {(selectedRoom || preSelectedRoom).available || (selectedRoom || preSelectedRoom).vacant || 0}
+                          </p>
+                        </div>
+                      </div>
+                      {(selectedRoom || preSelectedRoom).description && (
+                        <div className="mt-4 pt-4 border-t border-gray-100">
+                          <p className="text-sm text-gray-500 mb-1">Description</p>
+                          <p className="text-gray-700">{(selectedRoom || preSelectedRoom).description}</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="bg-white rounded-xl p-5 border border-blue-200">
+                      <p className="text-gray-500">No room selected. Please go back and select a room.</p>
                     </div>
                   )}
                 </div>
 
-                {/* Selected Room Details */}
-                {selectedRoom && (
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-3">Selected Room Details</h3>
-                    <div className="grid md:grid-cols-2 gap-4">
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Room Number</p>
-                        <p className="font-semibold">{selectedRoom.roomNumber || `Room ${selectedRoom._id}`}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Monthly Rent</p>
-                        <p className="font-semibold text-green-600">₹{selectedRoom.price || selectedRoom.monthlyRent || 0}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Capacity</p>
-                        <p className="font-semibold">{selectedRoom.capacity || 1} person(s)</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600 mb-1">Available Beds</p>
-                        <p className="font-semibold">{selectedRoom.available || selectedRoom.vacant || 0}</p>
+                {/* ============ SECTION 2: PERSONAL INFORMATION ============ */}
+                {user && (
+                  <div className="bg-green-50/50 rounded-2xl p-6 border border-green-100">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Users className="h-5 w-5 text-green-600" />
+                      <h3 className="text-lg font-bold text-gray-800">2. Personal Information</h3>
+                    </div>
+                    <div className="bg-white rounded-xl p-5 border border-green-200 shadow-sm">
+                      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Full Name</p>
+                          <p className="font-semibold text-gray-900">{user.name}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Email Address</p>
+                          <p className="font-semibold text-gray-900">{user.email}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500 mb-1">Phone Number</p>
+                          <p className="font-semibold text-gray-900">{user.phone || 'Not provided'}</p>
+                        </div>
+                        {user.studentInfo && (
+                          <>
+                            <div>
+                              <p className="text-sm text-gray-500 mb-1">Roll Number</p>
+                              <p className="font-semibold text-gray-900">{user.studentInfo.rollNumber}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500 mb-1">Department</p>
+                              <p className="font-semibold text-gray-900">{user.studentInfo.department}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-gray-500 mb-1">Course</p>
+                              <p className="font-semibold text-gray-900">{user.studentInfo.course}</p>
+                            </div>
+                          </>
+                        )}
                       </div>
                     </div>
-                    {selectedRoom.description && (
-                      <div className="mt-3">
-                        <p className="text-sm text-gray-600 mb-1">Description</p>
-                        <p className="text-gray-800">{selectedRoom.description}</p>
-                      </div>
-                    )}
                   </div>
                 )}
 
-                {/* Room Type Selection (Auto-filled from room selection) */}
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-2">Room Type</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {roomTypes.map((room) => (
-                      <label key={room.value} className="cursor-pointer">
-                        <input
-                          type="radio"
-                          name="roomType"
-                          value={room.value}
-                          checked={formData.roomType === room.value}
-                          onChange={(e) => setFormData({...formData, roomType: e.target.value})}
-                          className="sr-only"
-                        />
-                        <div className={`p-4 rounded-xl border text-center transition-all ${
-                          formData.roomType === room.value
-                            ? 'bg-blue-50 border-blue-500'
-                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                        }`}>
-                          <Bed className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                          <p className="text-gray-800 font-semibold">{room.label}</p>
-                          <p className="text-green-600 text-sm">₹{room.price}/month</p>
-                        </div>
+                {/* ============ SECTION 3: ADDITIONAL INFORMATION ============ */}
+                <div className="bg-orange-50/50 rounded-2xl p-6 border border-orange-100">
+                  <div className="flex items-center gap-2 mb-4">
+                    <FileText className="h-5 w-5 text-orange-600" />
+                    <h3 className="text-lg font-bold text-gray-800">3. Additional Information</h3>
+                  </div>
+                  <div className="bg-white rounded-xl p-5 border border-orange-200 shadow-sm space-y-5">
+
+                    {/* Emergency Contact */}
+                    <div>
+                      <label className="block text-gray-700 text-sm font-semibold mb-3">
+                        Emergency Contact <span className="text-red-500">*</span>
                       </label>
-                    ))}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Contact Name</p>
+                          <input
+                            type="text"
+                            value={formData.emergencyContact.name}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              emergencyContact: {
+                                ...formData.emergencyContact,
+                                name: e.target.value
+                              }
+                            })}
+                            placeholder="e.g. Father, Mother"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Relationship</p>
+                          <input
+                            type="text"
+                            value={formData.emergencyContact.relationship}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              emergencyContact: {
+                                ...formData.emergencyContact,
+                                relationship: e.target.value
+                              }
+                            })}
+                            placeholder="e.g. Parent, Sibling"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <p className="text-xs text-gray-500 mb-1">Phone Number</p>
+                          <input
+                            type="tel"
+                            value={formData.emergencyContact.phone}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              emergencyContact: {
+                                ...formData.emergencyContact,
+                                phone: e.target.value
+                              }
+                            })}
+                            placeholder="03XX-XXXXXXX"
+                            className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Academic Information */}
+                    <div className="bg-purple-50/50 rounded-2xl p-6 border border-purple-100">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Calendar className="h-5 w-5 text-purple-600" />
+                        <h3 className="text-lg font-bold text-gray-800">4. Academic Information</h3>
+                      </div>
+                      <div className="bg-white rounded-xl p-5 border border-purple-200 shadow-sm space-y-5">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-gray-700 text-sm font-semibold mb-1">
+                              Semester <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.semester}
+                              onChange={(e) => setFormData({...formData, semester: e.target.value})}
+                              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-gray-700 text-sm font-semibold mb-1">
+                              Academic Year <span className="text-red-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={formData.academicYear}
+                              onChange={(e) => setFormData({...formData, academicYear: e.target.value})}
+                              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              required
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Purpose of Stay */}
+                    <div>
+                      <label className="block text-gray-700 text-sm font-semibold mb-3">
+                        Purpose of Stay <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.purposeOfStay}
+                        onChange={(e) => setFormData({...formData, purposeOfStay: e.target.value})}
+                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="">-- Select Purpose --</option>
+                        <option value="education">Education / Study</option>
+                        <option value="job">Job / Work</option>
+                        <option value="internship">Internship</option>
+                        <option value="training">Training Program</option>
+                        <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    {/* Special Requirements */}
+                    <div>
+                      <label className="block text-gray-700 text-sm font-semibold mb-3">
+                        Special Requirements <span className="text-gray-400 font-normal">(Optional)</span>
+                      </label>
+                      <textarea
+                        value={formData.specialRequirements}
+                        onChange={(e) => setFormData({...formData, specialRequirements: e.target.value})}
+                        rows={3}
+                        placeholder="Any special requirements, medical conditions, or dietary needs..."
+                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+
+                    {/* Documents */}
+                    <div>
+                      <label className="block text-gray-700 text-sm font-semibold mb-3">
+                        Required Documents
+                      </label>
+                      <div className="space-y-3">
+                        {/* ID Proof */}
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                          <label className="flex items-center justify-between cursor-pointer">
+                            <div className="flex items-center gap-3">
+                              <Upload className="h-5 w-5 text-blue-600" />
+                              <div>
+                                <p className="text-gray-800 font-medium">ID Proof <span className="text-red-500">*</span></p>
+                                <p className="text-gray-500 text-sm">CNIC, Passport, Student ID</p>
+                              </div>
+                            </div>
+                            <input
+                              type="file"
+                              onChange={(e) => handleFileUpload('idProof', e.target.files[0])}
+                              className="hidden"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                              required
+                            />
+                            <span className={`px-3 py-1 rounded-lg text-sm ${formData.documents.idProof ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                              {formData.documents.idProof ? 'Uploaded' : 'Choose File'}
+                            </span>
+                          </label>
+                        </div>
+
+                        {/* Address Proof */}
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                          <label className="flex items-center justify-between cursor-pointer">
+                            <div className="flex items-center gap-3">
+                              <Upload className="h-5 w-5 text-blue-600" />
+                              <div>
+                                <p className="text-gray-800 font-medium">Address Proof</p>
+                                <p className="text-gray-500 text-sm">Utility Bill, Ration Card</p>
+                              </div>
+                            </div>
+                            <input
+                              type="file"
+                              onChange={(e) => handleFileUpload('addressProof', e.target.files[0])}
+                              className="hidden"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                            />
+                            <span className={`px-3 py-1 rounded-lg text-sm ${formData.documents.addressProof ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                              {formData.documents.addressProof ? 'Uploaded' : 'Choose File'}
+                            </span>
+                          </label>
+                        </div>
+
+                        {/* Academic Records */}
+                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
+                          <label className="flex items-center justify-between cursor-pointer">
+                            <div className="flex items-center gap-3">
+                              <Upload className="h-5 w-5 text-blue-600" />
+                              <div>
+                                <p className="text-gray-800 font-medium">Previous Academic Records</p>
+                                <p className="text-gray-500 text-sm">Marksheets, Certificates</p>
+                              </div>
+                            </div>
+                            <input
+                              type="file"
+                              onChange={(e) => handleFileUpload('previousMarks', e.target.files[0])}
+                              className="hidden"
+                              accept=".pdf,.jpg,.jpeg,.png"
+                            />
+                            <span className={`px-3 py-1 rounded-lg text-sm ${formData.documents.previousMarks ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'}`}>
+                              {formData.documents.previousMarks ? 'Uploaded' : 'Choose File'}
+                            </span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                {/* Emergency Contact */}
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-2">Emergency Contact</label>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <input
-                      type="text"
-                      value={formData.emergencyContact.name}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        emergencyContact: {
-                          ...formData.emergencyContact,
-                          name: e.target.value
-                        }
-                      })}
-                      placeholder="Contact Name"
-                      className="px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                    <input
-                      type="text"
-                      value={formData.emergencyContact.relationship}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        emergencyContact: {
-                          ...formData.emergencyContact,
-                          relationship: e.target.value
-                        }
-                      })}
-                      placeholder="Relationship"
-                      className="px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                    <input
-                      type="tel"
-                      value={formData.emergencyContact.phone}
-                      onChange={(e) => setFormData({
-                        ...formData,
-                        emergencyContact: {
-                          ...formData.emergencyContact,
-                          phone: e.target.value
-                        }
-                      })}
-                      placeholder="Phone Number"
-                      className="px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {/* Special Requirements */}
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-2">Special Requirements (Optional)</label>
-                  <textarea
-                    value={formData.specialRequirements}
-                    onChange={(e) => setFormData({...formData, specialRequirements: e.target.value})}
-                    rows={3}
-                    placeholder="Any special requirements or medical conditions..."
-                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-
-                {/* Document Upload */}
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-2">Required Documents</label>
-                  <div className="space-y-4">
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <label className="flex items-center justify-between cursor-pointer">
-                        <div className="flex items-center gap-3">
-                          <Upload className="h-5 w-5 text-blue-600" />
-                          <div>
-                            <p className="text-gray-800 font-medium">ID Proof</p>
-                            <p className="text-gray-600 text-sm">Aadhar Card, Passport, etc.</p>
-                          </div>
-                        </div>
-                        <input
-                          type="file"
-                          onChange={(e) => handleFileUpload('idProof', e.target.files[0])}
-                          className="hidden"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                        />
-                        <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm">
-                          {formData.documents.idProof ? 'Uploaded' : 'Choose File'}
-                        </span>
-                      </label>
-                    </div>
-
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <label className="flex items-center justify-between cursor-pointer">
-                        <div className="flex items-center gap-3">
-                          <Upload className="h-5 w-5 text-blue-600" />
-                          <div>
-                            <p className="text-gray-800 font-medium">Address Proof</p>
-                            <p className="text-gray-600 text-sm">Utility Bill, Ration Card, etc.</p>
-                          </div>
-                        </div>
-                        <input
-                          type="file"
-                          onChange={(e) => handleFileUpload('addressProof', e.target.files[0])}
-                          className="hidden"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                        />
-                        <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm">
-                          {formData.documents.addressProof ? 'Uploaded' : 'Choose File'}
-                        </span>
-                      </label>
-                    </div>
-
-                    <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                      <label className="flex items-center justify-between cursor-pointer">
-                        <div className="flex items-center gap-3">
-                          <Upload className="h-5 w-5 text-blue-600" />
-                          <div>
-                            <p className="text-gray-800 font-medium">Previous Academic Records</p>
-                            <p className="text-gray-600 text-sm">Marksheets, Certificates</p>
-                          </div>
-                        </div>
-                        <input
-                          type="file"
-                          onChange={(e) => handleFileUpload('previousMarks', e.target.files[0])}
-                          className="hidden"
-                          accept=".pdf,.jpg,.jpeg,.png"
-                        />
-                        <span className="px-3 py-1 bg-blue-100 text-blue-600 rounded-lg text-sm">
-                          {formData.documents.previousMarks ? 'Uploaded' : 'Choose File'}
-                        </span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
+                {/* Submit */}
                 <Button
                   type="submit"
                   isLoading={submitting}
-                  className="bg-blue-600 hover:bg-blue-700 text-white border-0"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white border-0 py-3 text-lg font-semibold"
                 >
                   {submitting ? 'Submitting...' : 'Submit Application'}
                 </Button>
@@ -603,7 +666,7 @@ const Application = () => {
           )}
 
           {/* No Application and Not Showing Form */}
-          {!applicationData && !showForm && (
+          {!applicationData?._id && !showForm && (
             <div className="bg-white rounded-2xl p-12 border border-blue-200 shadow-sm text-center">
               <FileText className="h-20 w-20 text-blue-600 mx-auto mb-6" />
               <h2 className="text-3xl font-bold text-gray-800 mb-4">Apply for Hostel Room</h2>

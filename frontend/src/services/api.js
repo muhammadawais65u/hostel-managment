@@ -12,8 +12,13 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
+    console.log('API Request Token:', token ? 'Present' : 'Missing');
+    console.log('API Request URL:', config.url);
+    
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else {
+      console.log('No token found in localStorage');
     }
     
     // If data is FormData, remove Content-Type to let browser set it
@@ -33,10 +38,20 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Token expired or invalid
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+      // Only clear session if we're not on a public route and have a token
+      const hasToken = localStorage.getItem('token');
+      const isPublicRoute = ['/', '/login', '/register', '/rooms', '/about', '/contact'].some(route => 
+        window.location.pathname === route || window.location.pathname.startsWith('/rooms/')
+      );
+      
+      if (hasToken && !isPublicRoute) {
+        console.log('401 error - clearing session and redirecting to login');
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
+      }
     }
     return Promise.reject(error);
   }
@@ -59,7 +74,8 @@ export const studentAPI = {
   getDashboard: () => api.get('/students/dashboard'),
   getProfile: () => api.get('/students/profile'),
   updateProfile: (data) => api.put('/students/profile', data),
-  getApplications: () => api.get('/students/applications'),
+  getApplications: () => api.get('/applications'),
+  submitApplication: (data) => api.post('/applications', data),
   getComplaints: () => api.get('/students/complaints'),
   getFees: () => api.get('/students/fees'),
   getNotifications: () => api.get('/students/notifications'),

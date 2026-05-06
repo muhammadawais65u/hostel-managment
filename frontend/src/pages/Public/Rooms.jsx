@@ -55,8 +55,8 @@ const Rooms = () => {
 
   const handleBookNow = (room) => {
     if (!user) {
-      // User not logged in, redirect to login
-      navigate('/login');
+      // User not logged in, redirect to login with redirect param
+      navigate('/login?redirect=/student/application');
       return;
     }
 

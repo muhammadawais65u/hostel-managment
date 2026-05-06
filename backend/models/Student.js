@@ -17,9 +17,9 @@ const studentSchema = new mongoose.Schema({
     required: [true, 'Please provide a department'],
     trim: true
   },
-  course: {
+  semester: {
     type: String,
-    required: [true, 'Please provide a course'],
+    required: [true, 'Please provide a semester'],
     trim: true
   },
   year: {
