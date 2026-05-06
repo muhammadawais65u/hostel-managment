@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FileText,
   Send,
@@ -9,7 +9,6 @@ import {
   Loader2,
   Upload,
   Bed,
-  Building2,
   Users,
   DollarSign,
   Calendar,
@@ -29,19 +28,21 @@ import { useAuth } from '../../context/AuthContext';
 
 const Application = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [applicationData, setApplicationData] = useState(null);
-  const [hostels, setHostels] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [showForm, setShowForm] = useState(false);
 
+  // Get pre-selected room from navigation state
+  const preSelectedRoom = location.state?.selectedRoom;
+
   const [formData, setFormData] = useState({
-    preferredHostel: '',
     roomType: '',
     selectedRoom: '',
     specialRequirements: '',
@@ -66,9 +67,16 @@ const Application = () => {
 
   useEffect(() => {
     fetchApplicationData();
-    fetchHostels();
     fetchRooms();
   }, []);
+
+  // Pre-select room if passed from Rooms page
+  useEffect(() => {
+    if (preSelectedRoom && rooms.length > 0) {
+      handleRoomSelection(preSelectedRoom);
+      setShowForm(true);
+    }
+  }, [preSelectedRoom, rooms]);
 
   const fetchRooms = async () => {
     try {
@@ -81,21 +89,12 @@ const Application = () => {
 
   const fetchApplicationData = async () => {
     try {
-      const response = await studentAPI.getApplication();
+      const response = await studentAPI.getApplications();
       setApplicationData(response.data.data);
     } catch (err) {
       // No application exists yet
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchHostels = async () => {
-    try {
-      const response = await studentAPI.getHostels();
-      setHostels(response.data.data || []);
-    } catch (err) {
-      setError('Failed to load hostels');
     }
   };
 
@@ -143,7 +142,6 @@ const Application = () => {
     setFormData({
       ...formData,
       selectedRoom: room._id,
-      preferredHostel: room.hostel?._id || room.hostel,
       roomType: room.type || 'single'
     });
   };
@@ -203,7 +201,7 @@ const Application = () => {
               Back to Dashboard
             </Button>
             <h1 className="text-4xl font-bold text-gray-800 mb-2">Apply for Room</h1>
-            <p className="text-gray-600">Submit your hostel room application</p>
+            <p className="text-gray-600">Submit your room application</p>
           </div>
 
           {/* Alerts */}
@@ -218,6 +216,21 @@ const Application = () => {
             <div className="mb-6 bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-xl flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
               {error}
+            </div>
+          )}
+
+          {/* Pre-selected Room Banner */}
+          {preSelectedRoom && (
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 mb-6">
+              <div className="flex items-center gap-3">
+                <Bed className="h-6 w-6 text-blue-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Applying for</p>
+                  <p className="font-semibold text-gray-900">
+                    Room {preSelectedRoom.roomNumber || preSelectedRoom.name} — Floor {preSelectedRoom.floor || 1} — PKR {preSelectedRoom.price || preSelectedRoom.rentPerMonth || 0}/mo
+                  </p>
+                </div>
+              </div>
             </div>
           )}
 
@@ -279,11 +292,6 @@ const Application = () => {
                         day: 'numeric' 
                       })}
                     </p>
-                  </div>
-
-                  <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
-                    <p className="text-gray-600 text-sm mb-2">Preferred Hostel</p>
-                    <p className="text-gray-800 font-semibold">{applicationData.preferredHostel?.name || 'N/A'}</p>
                   </div>
 
                   <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
@@ -379,8 +387,8 @@ const Application = () => {
                           <div className="flex flex-wrap gap-2 mb-2">
                             {getRoomAmenities(room)}
                           </div>
-                          {room.hostel?.name && (
-                            <p className="text-xs text-gray-500">{room.hostel.name}</p>
+                          {room.floor && (
+                            <p className="text-xs text-gray-500">Floor {room.floor}</p>
                           )}
                         </div>
                       </label>
@@ -424,35 +432,6 @@ const Application = () => {
                     )}
                   </div>
                 )}
-
-                {/* Hostel Selection (Auto-filled from room selection) */}
-                <div>
-                  <label className="block text-gray-700 text-sm font-medium mb-2">Preferred Hostel</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {hostels.map((hostel) => (
-                      <label key={hostel._id} className="cursor-pointer">
-                        <input
-                          type="radio"
-                          name="hostel"
-                          value={hostel._id}
-                          checked={formData.preferredHostel === hostel._id}
-                          onChange={(e) => setFormData({...formData, preferredHostel: e.target.value})}
-                          className="sr-only"
-                        />
-                        <div className={`p-4 rounded-xl border text-center transition-all ${
-                          formData.preferredHostel === hostel._id
-                            ? 'bg-blue-50 border-blue-500'
-                            : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
-                        }`}>
-                          <Building2 className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                          <p className="text-gray-800 font-semibold">{hostel.name}</p>
-                          <p className="text-gray-600 text-sm">{hostel.code}</p>
-                          <p className="text-gray-500 text-xs mt-1">{hostel.address}</p>
-                        </div>
-                      </label>
-                    ))}
-                  </div>
-                </div>
 
                 {/* Room Type Selection (Auto-filled from room selection) */}
                 <div>

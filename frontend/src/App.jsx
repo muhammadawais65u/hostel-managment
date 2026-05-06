@@ -12,6 +12,7 @@ import Landing from './pages/Public/Landing';
 import About from './pages/Public/About';
 import Contact from './pages/Public/Contact';
 import Rooms from './pages/Public/Rooms';
+import RoomDetail from './pages/Public/RoomDetail';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
@@ -61,6 +62,11 @@ const App = () => {
           <Route path="/rooms" element={
             <MainLayout>
               <Rooms />
+            </MainLayout>
+          } />
+          <Route path="/rooms/:id" element={
+            <MainLayout>
+              <RoomDetail />
             </MainLayout>
           } />
           <Route path="/contact" element={

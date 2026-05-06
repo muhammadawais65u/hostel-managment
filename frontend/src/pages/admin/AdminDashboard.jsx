@@ -81,7 +81,7 @@ const AdminDashboard = () => {
     );
   }
 
-  const { stats, recentApplications, recentComplaints, hostelStats } = data || {};
+  const { stats, recentApplications, recentComplaints } = data || {};
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -90,7 +90,7 @@ const AdminDashboard = () => {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
-            <p className="text-blue-200">Overview of hostel management system</p>
+            <p className="text-blue-200">Overview of room management system</p>
           </div>
           <div className="flex gap-3">
             <Button
@@ -131,17 +131,7 @@ const AdminDashboard = () => {
           <p className="text-white text-2xl font-bold">{stats?.totalStudents || 0}</p>
         </div>
 
-        <div className="bg-gradient-to-br from-green-600/20 to-emerald-500/10 backdrop-blur-lg rounded-2xl p-6 border border-green-500/30 hover:shadow-2xl hover:shadow-green-500/25 transition-all duration-300">
-          <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-green-500/20 rounded-xl">
-              <Building2 className="h-6 w-6 text-green-300" />
-            </div>
-            <TrendingUp className="h-4 w-4 text-green-400" />
-          </div>
-          <p className="text-green-200 text-sm mb-2">Hostels</p>
-          <p className="text-white text-2xl font-bold">{stats?.totalHostels || 0}</p>
-        </div>
-
+        
         <div className="bg-gradient-to-br from-purple-600/20 to-pink-500/10 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
             <div className="p-3 bg-purple-500/20 rounded-xl">
@@ -252,7 +242,7 @@ const AdminDashboard = () => {
                           {app.student?.user?.name || 'Unknown'}
                         </p>
                         <p className="text-sm text-blue-200">
-                          {app.hostel?.name || 'Unknown Hostel'}
+                          Room Application
                         </p>
                       </div>
                     </div>
@@ -315,7 +305,7 @@ const AdminDashboard = () => {
                       <div className="min-w-0">
                         <p className="font-medium text-white truncate">{complaint.title}</p>
                         <p className="text-sm text-red-200 capitalize">
-                          {complaint.category} • {complaint.hostel?.name}
+                          {complaint.category}
                         </p>
                       </div>
                     </div>
@@ -327,94 +317,6 @@ const AdminDashboard = () => {
               <p className="text-center text-red-200 py-8">No recent complaints</p>
             )}
           </div>
-        </div>
-      </div>
-
-      {/* Hostel Stats */}
-      <div className="bg-gradient-to-br from-green-600/10 to-emerald-600/10 backdrop-blur-lg rounded-2xl p-6 border border-green-500/30">
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-green-500/20 rounded-xl">
-              <Building2 className="h-6 w-6 text-green-300" />
-            </div>
-            <h3 className="text-xl font-bold text-white">Hostel Occupancy Overview</h3>
-          </div>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => navigate('/admin/hostels')}
-            className="border-green-500/30 text-green-300 hover:bg-green-500/20"
-          >
-            Manage Hostels
-          </Button>
-        </div>
-
-        <div className="table-container">
-          <table className="w-full min-w-[800px]">
-            <thead>
-              <tr className="border-b border-white/20">
-                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
-                  Hostel
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
-                  Type
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
-                  Capacity
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
-                  Occupied
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
-                  Available
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-green-200 uppercase tracking-wider">
-                  Occupancy Rate
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-white/10">
-              {hostelStats?.map((hostel) => (
-                <tr key={hostel.id} className="hover:bg-white/5 transition-colors">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <p className="font-medium text-white">{hostel.name}</p>
-                    <p className="text-sm text-green-200">{hostel.code}</p>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="px-2 py-1 bg-green-500/20 text-green-300 rounded-full text-xs font-medium capitalize">
-                      {hostel.type}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-green-200">
-                    {hostel.capacity}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-green-200">
-                    {hostel.occupied}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-green-200">
-                    {hostel.available}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center gap-2">
-                      <div className="w-24 h-2 bg-white/20 rounded-full overflow-hidden">
-                        <div
-                          className={`h-full rounded-full ${
-                            hostel.occupancyRate > 90 ? 'bg-red-500' :
-                            hostel.occupancyRate > 70 ? 'bg-yellow-500' :
-                            'bg-green-500'
-                          }`}
-                          style={{ width: `${hostel.occupancyRate}%` }}
-                        />
-                      </div>
-                      <span className="text-sm font-medium text-green-200">
-                        {hostel.occupancyRate}%
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

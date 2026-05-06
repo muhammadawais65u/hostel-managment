@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
-const { User, Student, Hostel, Room, Application, Complaint, Fee, Notification } = require('../models');
+const { User, Student, Room, Application, Complaint, Fee, Notification } = require('../models');
 
 // All routes are protected and admin-only
 router.use(protect);
@@ -15,7 +15,6 @@ router.get('/dashboard', async (req, res) => {
     // Get counts
     const totalStudents = await Student.countDocuments();
     const totalUsers = await User.countDocuments();
-    const totalHostels = await Hostel.countDocuments({ isActive: true });
     const totalRooms = await Room.countDocuments();
     const pendingApplications = await Application.countDocuments({ status: 'pending' });
     const pendingComplaints = await Complaint.countDocuments({ status: { $nin: ['resolved', 'closed'] } });
@@ -36,7 +35,6 @@ router.get('/dashboard', async (req, res) => {
           select: 'name email'
         }
       })
-      .populate('hostel', 'name code')
       .sort({ createdAt: -1 })
       .limit(5);
 
@@ -49,29 +47,8 @@ router.get('/dashboard', async (req, res) => {
           select: 'name'
         }
       })
-      .populate('hostel', 'name')
       .sort({ createdAt: -1 })
       .limit(5);
-
-    // Hostel occupancy stats
-    const hostelStats = await Promise.all(
-      (await Hostel.find({ isActive: true })).map(async (hostel) => {
-        const rooms = await Room.find({ hostel: hostel._id });
-        const capacity = rooms.reduce((sum, room) => sum + room.capacity, 0);
-        const occupied = rooms.reduce((sum, room) => sum + room.occupiedSeats, 0);
-
-        return {
-          id: hostel._id,
-          name: hostel.name,
-          code: hostel.code,
-          type: hostel.type,
-          capacity,
-          occupied,
-          available: capacity - occupied,
-          occupancyRate: capacity > 0 ? Math.round((occupied / capacity) * 100) : 0
-        };
-      })
-    );
 
     res.status(200).json({
       success: true,
@@ -79,7 +56,6 @@ router.get('/dashboard', async (req, res) => {
         stats: {
           totalStudents,
           totalUsers,
-          totalHostels,
           totalRooms,
           totalCapacity,
           occupiedSeats,
@@ -89,8 +65,7 @@ router.get('/dashboard', async (req, res) => {
           pendingFees
         },
         recentApplications,
-        recentComplaints,
-        hostelStats
+        recentComplaints
       }
     });
   } catch (error) {

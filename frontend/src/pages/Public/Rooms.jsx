@@ -53,16 +53,16 @@ const Rooms = () => {
     }
   };
 
-  const handleBookNow = (roomId) => {
+  const handleBookNow = (room) => {
     if (!user) {
       // User not logged in, redirect to login
       navigate('/login');
       return;
     }
-    
+
     if (user.role === 'student') {
-      // Student logged in, redirect to application page
-      navigate('/student/application');
+      // Student logged in, redirect to application page with selected room
+      navigate('/student/application', { state: { selectedRoom: room } });
     } else if (user.role === 'admin') {
       // Admin logged in, redirect to admin rooms page
       navigate('/admin/rooms');
@@ -125,7 +125,6 @@ const Rooms = () => {
 
   const RoomCard = ({ room }) => {
     const [isLiked, setIsLiked] = useState(false);
-    const isFeatured = false; // Default value since we don't have featured logic
 
     const roomId = room._id || room.id;
     const roomName = room.roomNumber || room.name || 'Room';
@@ -135,8 +134,6 @@ const Rooms = () => {
     const roomAvailable = room.capacity - (room.occupiedSeats || 0);
     const roomPrice = room.price || room.rentPerMonth || 0;
     const roomLocation = `Floor ${room.floor || 1}`;
-    const roomRating = room.rating || 4.5;
-    const roomReviews = room.reviews || Math.floor(Math.random() * 50) + 10;
     const roomDescription = room.description || 'Comfortable and well-maintained room with modern amenities.';
 
     // Convert features object to amenities array
@@ -147,107 +144,125 @@ const Rooms = () => {
     if (room.features?.furnished) roomAmenities.push('Furnished');
 
     return (
-      <div className="card overflow-hidden hover:shadow-lg transition-shadow duration-300">
+      <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col h-full">
         {/* Room Image */}
-        <div className="relative">
+        <div
+          className="relative h-52 overflow-hidden cursor-pointer"
+          onClick={() => navigate(`/rooms/${roomId}`)}
+        >
           {room.images && room.images.length > 0 ? (
             <img
               src={`http://localhost:5000${room.images[0]}`}
               alt={roomName}
-              className="w-full h-48 object-cover"
+              className="w-full h-full object-cover transform hover:scale-110 transition-transform duration-500"
             />
           ) : (
-            <div className="h-48 bg-gradient-to-br from-primary-100 to-primary-200 flex items-center justify-center">
-              <Bed className="h-16 w-16 text-primary-400" />
+            <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+              <Bed className="h-16 w-16 text-blue-400" />
             </div>
           )}
 
-          {/* Featured Badge */}
-          {isFeatured && (
-            <div className="absolute top-4 left-4 bg-primary-600 text-white px-3 py-1 rounded-full text-xs font-semibold">
-              Featured
+          {/* Type Badge */}
+          <div className="absolute top-3 left-3 z-10">
+            <div className="bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold capitalize">
+              {roomType}
             </div>
-          )}
+          </div>
 
           {/* Like Button */}
           <button
-            onClick={() => setIsLiked(!isLiked)}
-            className="absolute top-4 right-4 bg-white p-2 rounded-full shadow-md hover:shadow-lg transition-shadow"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsLiked(!isLiked);
+            }}
+            className="absolute top-3 right-3 z-10 bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-md hover:bg-white transition-all duration-200"
           >
             <Heart
-              className={`h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-secondary-400'}`}
+              className={`h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
             />
           </button>
 
           {/* Availability Badge */}
-          <div className="absolute bottom-4 left-4 bg-white px-3 py-1 rounded-full text-xs font-medium">
+          <div className="absolute bottom-3 left-3 z-10">
             {roomAvailable > 0 ? (
-              <span className="text-green-600">{roomAvailable} Available</span>
+              <div className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                {roomAvailable} Available
+              </div>
             ) : (
-              <span className="text-red-600">Fully Booked</span>
+              <div className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
+                Fully Booked
+              </div>
             )}
           </div>
         </div>
 
         {/* Room Details */}
-        <div className="p-6">
-          <div className="flex justify-between items-start mb-3">
-            <div>
-              <h3 className="text-xl font-semibold text-secondary-900 mb-1">{roomName}</h3>
-              <div className="flex items-center text-secondary-500 text-sm mb-2">
-                <MapPin className="h-4 w-4 mr-1" />
-                {roomLocation}
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="flex items-center gap-1 mb-1">
-                <Star className="h-4 w-4 text-yellow-400 fill-current" />
-                <span className="font-semibold text-secondary-900">{roomRating}</span>
-              </div>
-              <div className="text-xs text-secondary-500">({roomReviews} reviews)</div>
+        <div className="p-5 flex flex-col flex-1">
+          {/* Header */}
+          <div
+            className="mb-3 cursor-pointer"
+            onClick={() => navigate(`/rooms/${roomId}`)}
+          >
+            <h3 className="text-lg font-bold text-gray-900 mb-1 hover:text-blue-600 transition-colors">{roomName}</h3>
+            <div className="flex items-center text-gray-500 text-sm">
+              <MapPin className="h-3.5 w-3.5 mr-1 text-blue-500" />
+              <span>{roomLocation}</span>
             </div>
           </div>
 
-          <p className="text-secondary-600 text-sm mb-4 line-clamp-2">{roomDescription}</p>
+          {/* Description */}
+          <p
+            className="text-gray-600 text-sm mb-4 leading-relaxed line-clamp-2 flex-shrink-0 cursor-pointer"
+            onClick={() => navigate(`/rooms/${roomId}`)}
+          >{roomDescription}</p>
 
-          {/* Capacity & Availability */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4 text-sm text-secondary-600">
-              <div className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
-                <span>{roomCapacity} Person</span>
+          {/* Features */}
+          <div className="grid grid-cols-2 gap-3 mb-4 flex-shrink-0">
+            <div className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg">
+              <Users className="h-4 w-4 text-blue-500 flex-shrink-0" />
+              <div>
+                <div className="text-xs font-medium text-gray-900">Capacity</div>
+                <div className="text-xs text-gray-500">{roomCapacity} Persons</div>
               </div>
-              <div className="flex items-center gap-1">
-                <Bed className="h-4 w-4" />
-                <span>{roomAvailable}/{roomTotal} Available</span>
+            </div>
+            <div className="flex items-center gap-2 p-2.5 bg-gray-50 rounded-lg">
+              <Bed className="h-4 w-4 text-green-500 flex-shrink-0" />
+              <div>
+                <div className="text-xs font-medium text-gray-900">Available</div>
+                <div className="text-xs text-gray-500">{roomAvailable}/{roomTotal} Beds</div>
               </div>
             </div>
           </div>
 
           {/* Amenities */}
-          <div className="flex flex-wrap gap-2 mb-4">
-            {roomAmenities.slice(0, 4).map((amenity, index) => {
-              const amenityKey = typeof amenity === 'string' ? amenity.toLowerCase() : 'wifi';
-              const IconComponent = amenities[amenityKey]?.icon || Wifi;
-              const amenityName = amenities[amenityKey]?.name || amenity;
-              return (
-                <div
-                  key={index}
-                  className="flex items-center gap-1 text-xs text-secondary-600 bg-secondary-50 px-2 py-1 rounded"
-                >
-                  <IconComponent className="h-3 w-3" />
-                  <span>{amenityName}</span>
-                </div>
-              );
-            })}
-          </div>
+          {roomAmenities.length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mb-4 flex-shrink-0">
+              {roomAmenities.map((amenity, index) => {
+                const amenityKey = typeof amenity === 'string' ? amenity.toLowerCase() : 'wifi';
+                const IconComponent = amenities[amenityKey]?.icon || Wifi;
+                const amenityName = amenities[amenityKey]?.name || amenity;
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center gap-1.5 px-2.5 py-1.5 bg-blue-50 text-blue-700 rounded-md text-xs font-medium"
+                  >
+                    <IconComponent className="h-3 w-3" />
+                    <span>{amenityName}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
 
-          {/* Price & Action */}
-          <div className="flex items-center justify-between pt-4 border-t border-secondary-100">
+          {/* Spacer */}
+          <div className="flex-1" />
+
+          {/* Price & Actions */}
+          <div className="flex items-center justify-between pt-4 border-t border-gray-100 flex-shrink-0">
             <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl font-bold text-secondary-900">₹{roomPrice}</span>
-                <span className="text-xs text-secondary-500">per month</span>
+              <div className="flex items-baseline gap-1">
+                <span className="text-2xl font-bold text-gray-900">PKR {roomPrice}</span>
+                <span className="text-xs text-gray-500">/mo</span>
               </div>
             </div>
             <div className="flex gap-2">
@@ -255,7 +270,7 @@ const Rooms = () => {
                 <>
                   <button
                     onClick={() => handleEditRoom(roomId)}
-                    className="p-2 bg-blue-100 text-blue-600 rounded-lg hover:bg-blue-200 transition-colors"
+                    className="p-2.5 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
                     title="Edit Room"
                   >
                     <Edit className="h-4 w-4" />
@@ -263,20 +278,28 @@ const Rooms = () => {
                   <button
                     onClick={() => handleDeleteRoom(roomId)}
                     disabled={deleteLoading}
-                    className="p-2 bg-red-100 text-red-600 rounded-lg hover:bg-red-200 transition-colors disabled:opacity-50"
+                    className="p-2.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors disabled:opacity-50"
                     title="Delete Room"
                   >
                     {deleteLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
                   </button>
                 </>
               )}
-              <button
-                onClick={() => handleBookNow(roomId)}
-                className="btn-primary flex items-center gap-2"
-              >
-                Book Now
-                <ArrowRight className="h-4 w-4" />
-              </button>
+              {user?.role === 'student' ? (
+                <button
+                  onClick={() => handleBookNow(room)}
+                  className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                >
+                  Apply Now
+                </button>
+              ) : (
+                <button
+                  onClick={() => navigate(`/rooms/${roomId}`)}
+                  className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
+                >
+                  View Details
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -285,200 +308,167 @@ const Rooms = () => {
   };
 
   return (
-    <div className="min-h-screen bg-secondary-50">
+    <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
-      <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="bg-gradient-to-r from-blue-600 to-indigo-800 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">Available Rooms</h1>
-            <p className="text-xl text-primary-100 max-w-3xl mx-auto">
-              Find your perfect accommodation from our wide range of comfortable and affordable rooms
+            <h1 className="text-3xl md:text-4xl font-bold mb-3">Available Rooms</h1>
+            <p className="text-lg text-blue-100 max-w-2xl mx-auto">
+              Find your perfect accommodation from our wide range of comfortable rooms
             </p>
           </div>
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex flex-col lg:flex-row max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6">
-        
-        {/* Left Sidebar Filters */}
-        <div className="lg:w-80 flex-shrink-0">
-          <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-            {/* Filter Header */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <Filter className="h-5 w-5 text-primary-600" />
-                <h2 className="text-lg font-semibold text-secondary-900">Filters</h2>
-              </div>
+      {/* Search & Filter Bar */}
+      <div className="bg-white shadow-sm border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            {/* Search */}
+            <div className="relative flex-1 w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
+              <input
+                type="text"
+                placeholder="Search rooms..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+
+            {/* Room Type Pills */}
+            <div className="flex gap-2 overflow-x-auto pb-1 w-full md:w-auto">
+              {roomTypes.map((type) => (
+                <button
+                  key={type.id}
+                  onClick={() => setSelectedType(type.id)}
+                  className={`px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
+                    selectedType === type.id
+                      ? 'bg-blue-600 text-white shadow-md'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {type.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Filter Tags & Results */}
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div className="flex items-center gap-2">
+            <span className="text-gray-600">
+              Showing <span className="font-semibold text-gray-900">{filteredRooms.length}</span> rooms
+            </span>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            {/* Price Range Display */}
+            <span className="text-sm text-gray-600">
+              PKR {priceRange[0]} - PKR {priceRange[1]}
+            </span>
+            
+            {/* Clear Filters */}
+            {(selectedType !== 'all' || searchTerm || priceRange[1] !== 10000) && (
               <button
                 onClick={() => {
                   setSelectedType('all');
                   setSearchTerm('');
                   setPriceRange([0, 10000]);
                 }}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
-                Clear All
+                <X className="h-4 w-4" />
+                Clear filters
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Quick Price Filters */}
+        <div className="flex gap-2 mb-8 overflow-x-auto pb-1">
+          <button
+            onClick={() => setPriceRange([0, 2500])}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              priceRange[1] === 2500 ? 'bg-green-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Budget
+          </button>
+          <button
+            onClick={() => setPriceRange([2500, 5000])}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              priceRange[0] === 2500 && priceRange[1] === 5000 ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Mid-range
+          </button>
+          <button
+            onClick={() => setPriceRange([5000, 10000])}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              priceRange[0] === 5000 ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+            }`}
+          >
+            Premium
+          </button>
+        </div>
+
+        {/* Loading State */}
+        {loading && (
+          <div className="flex items-center justify-center py-16">
+            <div className="text-center">
+              <Loader2 className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
+              <p className="text-gray-600">Loading rooms...</p>
+            </div>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && !loading && (
+          <div className="text-center py-16">
+            <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
+              <p className="text-red-600 mb-4">{error}</p>
+              <button
+                onClick={fetchRooms}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Try Again
               </button>
             </div>
+          </div>
+        )}
 
-            {/* Search Bar */}
-            <div className="mb-6">
-              <label className="form-label">Search Rooms</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400 h-5 w-5" />
-                <input
-                  type="text"
-                  placeholder="Search rooms..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="input-field pl-10 pr-4"
-                />
-                {searchTerm && (
-                  <button
-                    onClick={() => setSearchTerm('')}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-secondary-400 hover:text-secondary-600"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* Room Type Filter */}
-            <div className="mb-6">
-              <label className="form-label">Room Type</label>
-              <div className="space-y-2">
-                {roomTypes.map((type) => (
-                  <button
-                    key={type.id}
-                    onClick={() => setSelectedType(type.id)}
-                    className={`w-full text-left px-4 py-3 rounded-lg text-sm font-medium transition-colors ${
-                      selectedType === type.id
-                        ? 'bg-primary-600 text-white'
-                        : 'bg-secondary-100 text-secondary-700 hover:bg-secondary-200'
-                    }`}
-                  >
-                    {type.name}
-                  </button>
+        {/* Rooms Grid */}
+        {!loading && !error && (
+          <>
+            {filteredRooms.length > 0 ? (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {filteredRooms.map((room) => (
+                  <RoomCard key={room._id || room.id} room={room} />
                 ))}
               </div>
-            </div>
-
-            {/* Price Range */}
-            <div className="mb-6">
-              <label className="form-label">Max Price</label>
-              <div className="space-y-3">
-                <input
-                  type="range"
-                  min="0"
-                  max="10000"
-                  step="500"
-                  value={priceRange[1]}
-                  onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                  className="w-full h-2 bg-secondary-200 rounded-lg appearance-none cursor-pointer"
-                />
-                <div className="flex justify-between text-sm text-secondary-600">
-                  <span>₹0</span>
-                  <span className="font-semibold text-primary-600">₹{priceRange[1]}</span>
-                  <span>₹10,000</span>
-                </div>
+            ) : (
+              <div className="text-center py-16">
+                <Bed className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">No rooms found</h3>
+                <p className="text-gray-600">Try adjusting your filters or search terms</p>
               </div>
-            </div>
-
-            {/* Quick Filters */}
-            <div className="mb-6">
-              <label className="form-label">Quick Filters</label>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setPriceRange([0, 2500])}
-                  className="w-full text-left px-4 py-2 text-sm bg-secondary-100 text-secondary-700 hover:bg-secondary-200 rounded-lg transition-colors"
-                >
-                  Budget (₹0-2.5k)
-                </button>
-                <button
-                  onClick={() => setPriceRange([2500, 5000])}
-                  className="w-full text-left px-4 py-2 text-sm bg-secondary-100 text-secondary-700 hover:bg-secondary-200 rounded-lg transition-colors"
-                >
-                  Mid-range (₹2.5-5k)
-                </button>
-                <button
-                  onClick={() => setPriceRange([5000, 10000])}
-                  className="w-full text-left px-4 py-2 text-sm bg-secondary-100 text-secondary-700 hover:bg-secondary-200 rounded-lg transition-colors"
-                >
-                  Premium (₹5-10k)
-                </button>
-                <button
-                  onClick={() => {
-                    setSelectedType('all');
-                    setPriceRange([0, 10000]);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm bg-primary-100 text-primary-700 hover:bg-primary-200 rounded-lg transition-colors"
-                >
-                  Available Only
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Right Side - Room Cards */}
-        <div className="flex-1">
-          {/* Results Count */}
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-secondary-600">
-              Showing <span className="font-semibold text-secondary-900">{filteredRooms.length}</span> rooms
-            </p>
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4 text-secondary-400" />
-              <span className="text-sm text-secondary-600">Filters applied</span>
-            </div>
-          </div>
-
-          {/* Loading State */}
-          {loading && (
-            <div className="flex items-center justify-center py-16">
-              <div className="text-center">
-                <Loader2 className="h-12 w-12 text-primary-600 animate-spin mx-auto mb-4" />
-                <p className="text-secondary-600">Loading rooms...</p>
-              </div>
-            </div>
-          )}
-
-          {/* Error State */}
-          {error && !loading && (
-            <div className="text-center py-16">
-              <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md mx-auto">
-                <p className="text-red-600 mb-4">{error}</p>
-                <button
-                  onClick={fetchRooms}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-                >
-                  Try Again
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* Rooms Grid */}
-          {!loading && !error && (
-            <>
-              {filteredRooms.length > 0 ? (
-                <div className="grid md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredRooms.map((room) => (
-                    <RoomCard key={room._id || room.id} room={room} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <Bed className="h-16 w-16 text-secondary-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-secondary-900 mb-2">No rooms found</h3>
-                  <p className="text-secondary-600">Try adjusting your filters or search terms</p>
-                </div>
-              )}
-            </>
-          )}
-        </div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );
