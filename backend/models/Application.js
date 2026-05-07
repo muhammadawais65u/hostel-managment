@@ -80,13 +80,20 @@ const applicationSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
-  semester: {
-    type: String,
-    required: [true, 'Please specify semester']
+  roomInfo: {
+    roomNumber: { type: String, default: '' },
+    roomType: { type: String, default: '' },
+    floor: { type: String, default: '' },
+    capacity: { type: String, default: '' },
+    price: { type: String, default: '' }
   },
-  academicYear: {
-    type: String,
-    required: [true, 'Please specify academic year']
+  personalInfo: {
+    name: { type: String, default: '' },
+    email: { type: String, default: '' },
+    phone: { type: String, default: '' },
+    rollNumber: { type: String, default: '' },
+    department: { type: String, default: '' },
+    semester: { type: String, default: '' }
   },
   createdAt: {
     type: Date,

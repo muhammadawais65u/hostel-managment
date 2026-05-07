@@ -48,7 +48,6 @@ const Application = () => {
     selectedRoom: '',
     purposeOfStay: '',
     semester: '',
-    academicYear: '',
     specialRequirements: '',
     emergencyContact: {
       name: '',
@@ -59,6 +58,21 @@ const Application = () => {
       idProof: null,
       addressProof: null,
       previousMarks: null
+    },
+    roomInfo: {
+      roomNumber: '',
+      roomType: '',
+      floor: '',
+      capacity: '',
+      price: ''
+    },
+    personalInfo: {
+      name: '',
+      email: '',
+      phone: '',
+      rollNumber: '',
+      department: '',
+      semester: ''
     }
   });
 
@@ -89,6 +103,23 @@ const Application = () => {
       }
     }
   }, [preSelectedRoom, preSelectedRoomId, rooms]);
+
+  // Pre-populate personalInfo from user data
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        personalInfo: {
+          name: user.name || '',
+          email: user.email || '',
+          phone: user.phone || '',
+          rollNumber: user.studentInfo?.rollNumber || '',
+          department: user.studentInfo?.department || '',
+          semester: user.studentInfo?.semester || ''
+        }
+      }));
+    }
+  }, [user]);
 
   const fetchRooms = async () => {
     try {
@@ -127,9 +158,25 @@ const Application = () => {
       setShowForm(false);
       fetchApplicationData();
     } catch (err) {
-      console.error('Submission Error:', err);
-      console.error('Error Response:', err.response?.data);
-      setError('Failed to submit application');
+      console.error('=== FULL ERROR DETAILS ===');
+      console.error('Error object:', err);
+      console.error('Response status:', err.response?.status);
+      console.error('Response data:', JSON.stringify(err.response?.data, null, 2));
+      console.error('Response text:', err.response?.statusText);
+      console.error('Error message:', err.message);
+      console.error('==========================');
+      
+      let errorMsg = 'Failed to submit application';
+      if (err.response?.data?.message) {
+        errorMsg = err.response.data.message;
+      } else if (err.response?.data?.errors?.[0]?.msg) {
+        errorMsg = err.response.data.errors[0].msg;
+      } else if (err.response?.status === 400 && !err.response?.data) {
+        errorMsg = 'Bad Request - Check backend console for details';
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      setError(errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -161,7 +208,14 @@ const Application = () => {
     setFormData({
       ...formData,
       selectedRoom: room._id,
-      roomType: room.type || 'single'
+      roomType: room.type || 'single',
+      roomInfo: {
+        roomNumber: room.roomNumber || '',
+        roomType: room.type || '',
+        floor: String(room.floor || ''),
+        capacity: String(room.capacity || ''),
+        price: String(room.price || room.rentPerMonth || '')
+      }
     });
   };
 
@@ -346,52 +400,100 @@ const Application = () => {
                     <div className="bg-white rounded-xl p-5 border border-blue-200 shadow-sm">
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Room Number</p>
-                          <p className="font-semibold text-gray-900">
-                            {(selectedRoom || preSelectedRoom).roomNumber || `Room ${(selectedRoom || preSelectedRoom)._id}`}
-                          </p>
+                          <label className="block text-sm text-gray-500 mb-1">Room Number</label>
+                          <select
+                            value={formData.roomInfo.roomNumber}
+                            onChange={(e) => {
+                              const selectedRoomId = e.target.value;
+                              const room = rooms.find(r => String(r.roomNumber || r._id) === selectedRoomId);
+                              if (room) {
+                                setFormData({
+                                  ...formData,
+                                  selectedRoom: room._id,
+                                  roomType: room.type || 'single',
+                                  roomInfo: {
+                                    roomNumber: String(room.roomNumber || room._id),
+                                    roomType: room.type || '',
+                                    floor: String(room.floor || ''),
+                                    capacity: String(room.capacity || ''),
+                                    price: String(room.price || room.rentPerMonth || '')
+                                  }
+                                });
+                                setSelectedRoom(room);
+                              }
+                            }}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select Room</option>
+                            {rooms.map((room) => (
+                              <option key={room._id} value={String(room.roomNumber || room._id)}>
+                                Room {room.roomNumber || room._id} — {room.type || 'Standard'} — PKR {room.price || room.rentPerMonth || 0}
+                              </option>
+                            ))}
+                          </select>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Room Type</p>
-                          <p className="font-semibold text-gray-900 capitalize">
-                            {(selectedRoom || preSelectedRoom).type || 'Standard'}
-                          </p>
+                          <label className="block text-sm text-gray-500 mb-1">Room Type</label>
+                          <input
+                            type="text"
+                            value={formData.roomInfo.roomType}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              roomInfo: { ...formData.roomInfo, roomType: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Monthly Rent</p>
-                          <p className="font-semibold text-green-600">
-                            PKR {(selectedRoom || preSelectedRoom).price || (selectedRoom || preSelectedRoom).rentPerMonth || 0}
-                          </p>
+                          <label className="block text-sm text-gray-500 mb-1">Monthly Rent (PKR)</label>
+                          <input
+                            type="text"
+                            value={formData.roomInfo.price}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              roomInfo: { ...formData.roomInfo, price: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Floor</p>
-                          <p className="font-semibold text-gray-900">
-                            Floor {(selectedRoom || preSelectedRoom).floor || 1}
-                          </p>
+                          <label className="block text-sm text-gray-500 mb-1">Floor</label>
+                          <input
+                            type="text"
+                            value={formData.roomInfo.floor}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              roomInfo: { ...formData.roomInfo, floor: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Capacity</p>
-                          <p className="font-semibold text-gray-900">
-                            {(selectedRoom || preSelectedRoom).capacity || 1} Person(s)
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-500 mb-1">Available Beds</p>
-                          <p className="font-semibold text-green-600">
-                            {(selectedRoom || preSelectedRoom).available || (selectedRoom || preSelectedRoom).vacant || 0}
-                          </p>
+                          <label className="block text-sm text-gray-500 mb-1">Capacity</label>
+                          <input
+                            type="text"
+                            value={formData.roomInfo.capacity}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              roomInfo: { ...formData.roomInfo, capacity: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
                         </div>
                       </div>
-                      {(selectedRoom || preSelectedRoom).description && (
-                        <div className="mt-4 pt-4 border-t border-gray-100">
-                          <p className="text-sm text-gray-500 mb-1">Description</p>
-                          <p className="text-gray-700">{(selectedRoom || preSelectedRoom).description}</p>
-                        </div>
-                      )}
                     </div>
                   ) : (
-                    <div className="bg-white rounded-xl p-5 border border-blue-200">
-                      <p className="text-gray-500">No room selected. Please go back and select a room.</p>
+                    <div className="bg-white rounded-xl p-6 border border-blue-200 text-center">
+                      <Bed className="h-10 w-10 text-blue-300 mx-auto mb-3" />
+                      <p className="text-gray-500 mb-3">No room selected</p>
+                      <button
+                        type="button"
+                        onClick={() => navigate('/rooms')}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                      >
+                        <ArrowLeft className="h-4 w-4" />
+                        Select Room
+                      </button>
                     </div>
                   )}
                 </div>
@@ -406,33 +508,81 @@ const Application = () => {
                     <div className="bg-white rounded-xl p-5 border border-green-200 shadow-sm">
                       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Full Name</p>
-                          <p className="font-semibold text-gray-900">{user.name}</p>
+                          <label className="block text-sm text-gray-500 mb-1">Full Name</label>
+                          <input
+                            type="text"
+                            value={formData.personalInfo.name}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              personalInfo: { ...formData.personalInfo, name: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Email Address</p>
-                          <p className="font-semibold text-gray-900">{user.email}</p>
+                          <label className="block text-sm text-gray-500 mb-1">Email Address</label>
+                          <input
+                            type="email"
+                            value={formData.personalInfo.email}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              personalInfo: { ...formData.personalInfo, email: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500 mb-1">Phone Number</p>
-                          <p className="font-semibold text-gray-900">{user.phone || 'Not provided'}</p>
+                          <label className="block text-sm text-gray-500 mb-1">Phone Number</label>
+                          <input
+                            type="tel"
+                            value={formData.personalInfo.phone}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              personalInfo: { ...formData.personalInfo, phone: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
                         </div>
-                        {user.studentInfo && (
-                          <>
-                            <div>
-                              <p className="text-sm text-gray-500 mb-1">Roll Number</p>
-                              <p className="font-semibold text-gray-900">{user.studentInfo.rollNumber}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-500 mb-1">Department</p>
-                              <p className="font-semibold text-gray-900">{user.studentInfo.department}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-gray-500 mb-1">Course</p>
-                              <p className="font-semibold text-gray-900">{user.studentInfo.course}</p>
-                            </div>
-                          </>
-                        )}
+                        <div>
+                          <label className="block text-sm text-gray-500 mb-1">Roll Number</label>
+                          <input
+                            type="text"
+                            value={formData.personalInfo.rollNumber}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              personalInfo: { ...formData.personalInfo, rollNumber: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-500 mb-1">Department</label>
+                          <input
+                            type="text"
+                            value={formData.personalInfo.department}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              personalInfo: { ...formData.personalInfo, department: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm text-gray-500 mb-1">Semester</label>
+                          <select
+                            value={formData.personalInfo.semester}
+                            onChange={(e) => setFormData({
+                              ...formData,
+                              personalInfo: { ...formData.personalInfo, semester: e.target.value }
+                            })}
+                            className="w-full px-4 py-2.5 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          >
+                            <option value="">Select Semester</option>
+                            {[1,2,3,4,5,6,7,8].map(n => (
+                              <option key={n} value={String(n)}>Semester {n}</option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -507,41 +657,7 @@ const Application = () => {
                     </div>
 
                     {/* Academic Information */}
-                    <div className="bg-purple-50/50 rounded-2xl p-6 border border-purple-100">
-                      <div className="flex items-center gap-2 mb-4">
-                        <Calendar className="h-5 w-5 text-purple-600" />
-                        <h3 className="text-lg font-bold text-gray-800">4. Academic Information</h3>
-                      </div>
-                      <div className="bg-white rounded-xl p-5 border border-purple-200 shadow-sm space-y-5">
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-gray-700 text-sm font-semibold mb-1">
-                              Semester <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={formData.semester}
-                              onChange={(e) => setFormData({...formData, semester: e.target.value})}
-                              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-gray-700 text-sm font-semibold mb-1">
-                              Academic Year <span className="text-red-500">*</span>
-                            </label>
-                            <input
-                              type="text"
-                              value={formData.academicYear}
-                              onChange={(e) => setFormData({...formData, academicYear: e.target.value})}
-                              className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                              required
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
+                 
                     {/* Purpose of Stay */}
                     <div>
                       <label className="block text-gray-700 text-sm font-semibold mb-3">

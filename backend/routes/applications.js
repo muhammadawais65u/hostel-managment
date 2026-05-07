@@ -23,19 +23,6 @@ router.post('/', authorize('student'), applicationValidation, async (req, res) =
       });
     }
 
-    // Check if student already has a pending or approved application
-    const existingApp = await Application.findOne({
-      student: student._id,
-      status: { $in: ['pending', 'approved'] }
-    });
-
-    if (existingApp) {
-      return res.status(400).json({
-        success: false,
-        message: 'You already have an active application'
-      });
-    }
-
     // Check if preferred room exists (if specified)
     let preferredRoom = null;
     if (req.body.preferredRoom) {
@@ -48,8 +35,8 @@ router.post('/', authorize('student'), applicationValidation, async (req, res) =
       user: req.user.id,
       roomType: req.body.roomType || 'any',
       preferredRoom: req.body.preferredRoom || null,
-      semester: req.body.semester,
-      academicYear: req.body.academicYear,
+      roomInfo: req.body.roomInfo || {},
+      personalInfo: req.body.personalInfo || {},
       emergencyContact: req.body.emergencyContact,
       purposeOfStay: req.body.purposeOfStay,
       specialRequirements: req.body.specialRequirements || '',
@@ -127,6 +114,37 @@ router.get('/', authorize('admin'), async (req, res) => {
       count,
       totalPages: Math.ceil(count / limit),
       currentPage: page,
+      data: applications
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// @route   GET /api/applications/my
+// @desc    Get current student's applications
+// @access  Private (Student)
+router.get('/my', authorize('student'), async (req, res) => {
+  try {
+    const student = await Student.findOne({ user: req.user.id });
+    
+    const applications = await Application.find({ student: student._id })
+      .populate({
+        path: 'student',
+        populate: {
+          path: 'user',
+          select: 'name email phone'
+        }
+      })
+      .populate('preferredRoom', 'roomNumber type capacity')
+      .populate('processedBy', 'name')
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
       data: applications
     });
   } catch (error) {

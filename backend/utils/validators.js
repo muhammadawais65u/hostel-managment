@@ -67,12 +67,10 @@ const applicationValidation = [
     .isIn(['single', 'double', 'triple', 'quad', 'any']).withMessage('Invalid room type'),
   body('preferredRoom')
     .optional(),
-  body('semester')
-    .trim()
-    .notEmpty().withMessage('Semester is required'),
-  body('academicYear')
-    .trim()
-    .notEmpty().withMessage('Academic year is required'),
+  body('roomInfo')
+    .optional(),
+  body('personalInfo')
+    .optional(),
   body('emergencyContact.name')
     .trim()
     .notEmpty().withMessage('Emergency contact name is required'),

@@ -19,14 +19,12 @@ const studentSchema = new mongoose.Schema({
   },
   semester: {
     type: String,
-    required: [true, 'Please provide a semester'],
     trim: true
   },
   year: {
-    type: Number,
+    type: String,
     required: [true, 'Please provide the year of study'],
-    min: 1,
-    max: 6
+    trim: true
   },
   dateOfBirth: {
     type: Date

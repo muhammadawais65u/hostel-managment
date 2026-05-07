@@ -342,10 +342,7 @@ const semesterOptions = [
 </div>
                       <div className="flex items-center gap-3">
                         <label className="w-28 text-sm font-medium text-gray-700 shrink-0">Year</label>
-                        <select name="year" value={formData.year} onChange={handleChange} required className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm">
-                          <option value="">Select Year</option>
-                          {yearOptions.map((opt) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
-                        </select>
+                        <input type="text" name="year" value={formData.year} onChange={handleChange} required placeholder="Year" className="flex-1 px-4 py-2.5 bg-white border border-gray-300 rounded-full text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" />
                       </div>
                    
                     </div>
