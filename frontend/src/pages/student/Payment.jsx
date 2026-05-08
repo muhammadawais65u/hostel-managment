@@ -13,7 +13,9 @@ import {
   Eye,
   Clock,
   TrendingUp,
-  TrendingDown
+  TrendingDown,
+  Bed,
+  X
 } from 'lucide-react';
 import { studentAPI } from '../../services/api';
 import Card from '../../components/ui/Card';
@@ -27,21 +29,112 @@ const Payment = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [paymentData, setPaymentData] = useState(null);
+  const [approvedApplications, setApprovedApplications] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth());
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState(null);
+  const [paymentForm, setPaymentForm] = useState({
+    cardNumber: '',
+    cardholderName: '',
+    expiryDate: '',
+    cvv: ''
+  });
+  const [paymentLoading, setPaymentLoading] = useState(false);
+  const [receipt, setReceipt] = useState(null);
 
   useEffect(() => {
     fetchPaymentData();
+    fetchApprovedApplications();
   }, [selectedMonth, selectedYear]);
 
   const fetchPaymentData = async () => {
     try {
-      const response = await studentAPI.getPaymentHistory(selectedMonth, selectedYear);
+      const response = await studentAPI.getFees(selectedMonth, selectedYear);
       setPaymentData(response.data.data);
     } catch (err) {
       setError('Failed to load payment data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchApprovedApplications = async () => {
+    try {
+      const response = await studentAPI.getApplications();
+      const approved = response.data.data.filter(app => app.status === 'approved');
+      setApprovedApplications(approved);
+    } catch (err) {
+      console.error('Failed to load approved applications:', err);
+    }
+  };
+
+  const handlePaymentClick = (application) => {
+    setSelectedRoom(application);
+    setShowPaymentModal(true);
+  };
+
+  const handlePaymentSubmit = async (e) => {
+    e.preventDefault();
+    setPaymentLoading(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      const paymentData = {
+        applicationId: selectedRoom._id,
+        cardNumber: paymentForm.cardNumber,
+        cardholderName: paymentForm.cardholderName,
+        expiryDate: paymentForm.expiryDate,
+        cvv: paymentForm.cvv,
+        amount: selectedRoom.roomInfo?.price || 5000
+      };
+
+      const response = await studentAPI.makePayment(paymentData);
+      
+      setReceipt({
+        ...response.data.data,
+        date: new Date().toLocaleDateString(),
+        status: 'Payment Completed'
+      });
+      
+      setSuccess('Payment processed successfully!');
+      setShowPaymentModal(false);
+      
+      // Refresh data
+      fetchPaymentData();
+      fetchApprovedApplications();
+    } catch (err) {
+      setError('Failed to process payment');
+    } finally {
+      setPaymentLoading(false);
+    }
+  };
+
+  const handleDownloadReceipt = () => {
+    if (receipt) {
+      const receiptContent = `
+PAYMENT RECEIPT
+===============
+Date: ${receipt.date}
+Status: ${receipt.status}
+Amount: ₹${receipt.amount}
+Transaction ID: ${receipt.transactionId}
+Room: ${selectedRoom?.roomInfo?.roomNumber}
+Room Type: ${selectedRoom?.roomInfo?.roomType}
+
+Payment Completed Successfully!
+      `;
+      
+      const blob = new Blob([receiptContent], { type: 'text/plain' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `payment_receipt_${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     }
   };
 
@@ -99,7 +192,7 @@ const Payment = () => {
     );
   }
 
-  const { fees, statistics, paymentHistory } = paymentData || {};
+  const { fees, statistics, paymentHistory, roomAllocation } = paymentData || {};
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800">
@@ -137,6 +230,117 @@ const Payment = () => {
             <div className="mb-6 bg-red-500/20 border border-red-500/30 backdrop-blur-sm text-red-200 px-4 py-3 rounded-xl flex items-center gap-2">
               <AlertCircle className="h-5 w-5" />
               {error}
+            </div>
+          )}
+
+          {/* Approved Room Cards */}
+          {approvedApplications.length > 0 && (
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-white mb-6">Approved Rooms - Make Payment</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {approvedApplications.map((application) => (
+                  <div key={application._id} className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20 hover:border-green-500/50 transition-all">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="p-3 bg-green-600 rounded-xl">
+                        <Bed className="h-6 w-6 text-white" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white">
+                          Room {application.roomInfo?.roomNumber}
+                        </h3>
+                        <p className="text-green-200 text-sm">Approved</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-3 mb-6">
+                      <div>
+                        <p className="text-purple-200 text-sm">Room Type</p>
+                        <p className="text-white font-medium">{application.roomInfo?.roomType}</p>
+                      </div>
+                      <div>
+                        <p className="text-purple-200 text-sm">Floor</p>
+                        <p className="text-white font-medium">{application.roomInfo?.floor}</p>
+                      </div>
+                      <div>
+                        <p className="text-purple-200 text-sm">Capacity</p>
+                        <p className="text-white font-medium">{application.roomInfo?.capacity} persons</p>
+                      </div>
+                      <div>
+                        <p className="text-purple-200 text-sm">Price</p>
+                        <p className="text-white font-bold text-xl">₹{application.roomInfo?.price || '5000'}</p>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      variant="success"
+                      className="w-full flex items-center justify-center gap-2"
+                      onClick={() => handlePaymentClick(application)}
+                    >
+                      <CreditCard className="h-5 w-5" />
+                      Pay Now
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Room Allocation */}
+          {roomAllocation && (
+            <div className="mb-8">
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/20">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="p-3 bg-blue-600 rounded-xl">
+                    <Bed className="h-8 w-8 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-2xl font-bold text-white mb-2">Your Allocated Room</h2>
+                    <p className="text-blue-200">Room {roomAllocation.roomNumber} has been allocated to you</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                    <h3 className="text-lg font-semibold text-white mb-4">Room Details</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-blue-200 text-sm">Room Number</p>
+                        <p className="text-white text-xl font-bold">{roomAllocation.roomNumber}</p>
+                      </div>
+                      <div>
+                        <p className="text-blue-200 text-sm">Room Type</p>
+                        <p className="text-white text-xl font-bold">{roomAllocation.type}</p>
+                      </div>
+                      <div>
+                        <p className="text-blue-200 text-sm">Floor</p>
+                        <p className="text-white text-xl font-bold">{roomAllocation.floor}</p>
+                      </div>
+                      <div>
+                        <p className="text-blue-200 text-sm">Capacity</p>
+                        <p className="text-white text-xl font-bold">{roomAllocation.capacity} persons</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/20">
+                    <h3 className="text-lg font-semibold text-white mb-4">Payment Information</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-blue-200 text-sm">Monthly Rent</p>
+                        <p className="text-white text-xl font-bold">₹{roomAllocation.rentPerMonth}</p>
+                      </div>
+                      <div>
+                        <p className="text-blue-200 text-sm">Security Deposit</p>
+                        <p className="text-white text-xl font-bold">₹{roomAllocation.securityDeposit}</p>
+                      </div>
+                      <div>
+                        <p className="text-blue-200 text-sm">Total Due</p>
+                        <p className="text-white text-xl font-bold text-green-300">₹{roomAllocation.totalDue}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -220,6 +424,108 @@ const Payment = () => {
               </div>
             </div>
           </div>
+
+          {/* Payment Method Selection */}
+          {roomAllocation && (
+            <div className="bg-gradient-to-br from-blue-600/20 to-indigo-600/10 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30 mb-6">
+              <h2 className="text-2xl font-bold text-white mb-6">Payment Method</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Online Payment</h3>
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
+                        <input
+                          type="text"
+                          placeholder="1234 5678 9012 3456"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
+                        <input
+                          type="text"
+                          placeholder="John Doe"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+                        <input
+                          type="text"
+                          placeholder="MM/YY"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">CVV</label>
+                        <input
+                          type="text"
+                          placeholder="123"
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      variant="success"
+                      className="w-full flex items-center justify-center gap-2"
+                    >
+                      <CreditCard className="h-5 w-5" />
+                      Pay Now
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="bg-white/10 backdrop-blur-sm rounded-xl p-6 border border-white/20">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Bank Transfer</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name</label>
+                      <input
+                        type="text"
+                        placeholder="State Bank of India"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Account Number</label>
+                      <input
+                        type="text"
+                        placeholder="123456789012"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">IFSC Code</label>
+                      <input
+                        type="text"
+                        placeholder="SBIN0001234"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Transaction Reference</label>
+                      <input
+                        type="text"
+                        placeholder="HOSTEL2024001"
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center justify-center gap-2"
+                    >
+                      <DollarSign className="h-5 w-5" />
+                      Confirm Transfer
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Current Fees */}
           <div className="bg-gradient-to-br from-purple-600/10 to-pink-600/10 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 mb-6">
@@ -341,6 +647,164 @@ const Payment = () => {
           </div>
         </div>
       </div>
+
+      {/* Payment Modal */}
+      {showPaymentModal && selectedRoom && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Payment Details</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowPaymentModal(false)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                <div className="flex items-center gap-3 mb-2">
+                  <Bed className="h-5 w-5 text-blue-600" />
+                  <span className="font-semibold">Room {selectedRoom.roomInfo?.roomNumber}</span>
+                </div>
+                <p className="text-sm text-gray-600 mb-2">{selectedRoom.roomInfo?.roomType}</p>
+                <p className="text-2xl font-bold text-green-600">₹{selectedRoom.roomInfo?.price || '5000'}</p>
+              </div>
+
+              <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Card Number</label>
+                  <input
+                    type="text"
+                    placeholder="1234 5678 9012 3456"
+                    value={paymentForm.cardNumber}
+                    onChange={(e) => setPaymentForm({...paymentForm, cardNumber: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Cardholder Name</label>
+                  <input
+                    type="text"
+                    placeholder="John Doe"
+                    value={paymentForm.cardholderName}
+                    onChange={(e) => setPaymentForm({...paymentForm, cardholderName: e.target.value})}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    required
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Expiry Date</label>
+                    <input
+                      type="text"
+                      placeholder="MM/YY"
+                      value={paymentForm.expiryDate}
+                      onChange={(e) => setPaymentForm({...paymentForm, expiryDate: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">CVV</label>
+                    <input
+                      type="text"
+                      placeholder="123"
+                      value={paymentForm.cvv}
+                      onChange={(e) => setPaymentForm({...paymentForm, cvv: e.target.value})}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      required
+                    />
+                  </div>
+                </div>
+                <Button
+                  type="submit"
+                  variant="success"
+                  className="w-full flex items-center justify-center gap-2"
+                  disabled={paymentLoading}
+                >
+                  {paymentLoading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 animate-spin" />
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="h-5 w-5" />
+                      Pay ₹{selectedRoom.roomInfo?.price || '5000'}
+                    </>
+                  )}
+                </Button>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Receipt Modal */}
+      {receipt && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-md w-full">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Payment Receipt</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setReceipt(null)}
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                  <div>
+                    <h3 className="text-lg font-bold text-green-800">Payment Completed!</h3>
+                    <p className="text-green-600 text-sm">{receipt.date}</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Transaction ID:</span>
+                    <span className="font-medium">{receipt.transactionId || 'TXN' + Date.now()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Amount:</span>
+                    <span className="font-bold text-green-600">₹{receipt.amount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Room:</span>
+                    <span className="font-medium">{selectedRoom?.roomInfo?.roomNumber}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Room Type:</span>
+                    <span className="font-medium">{selectedRoom?.roomInfo?.roomType}</span>
+                  </div>
+                </div>
+              </div>
+
+              <Button
+                variant="success"
+                className="w-full flex items-center justify-center gap-2"
+                onClick={handleDownloadReceipt}
+              >
+                <Download className="h-5 w-5" />
+                Download Receipt
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

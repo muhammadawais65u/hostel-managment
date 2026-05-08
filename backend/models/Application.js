@@ -95,6 +95,20 @@ const applicationSchema = new mongoose.Schema({
     department: { type: String, default: '' },
     semester: { type: String, default: '' }
   },
+  processedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  processedAt: {
+    type: Date,
+    default: null
+  },
+  adminRemarks: {
+    type: String,
+    trim: true,
+    default: ''
+  },
   createdAt: {
     type: Date,
     default: Date.now

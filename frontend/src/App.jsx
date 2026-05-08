@@ -19,16 +19,21 @@ import Register from './pages/auth/Register';
 // Student Pages
 import StudentDashboard from './pages/student/StudentDashboard';
 import Application from './pages/student/ApplyRoom';
+import ApplicationStatus from './pages/student/ApplicationStatus';
 import Payment from './pages/student/Payment';
 import Complaints from './pages/student/Complaints';
 import RoomDetails from './pages/student/RoomDetails';
 import Settings from './pages/student/Settings';
+import StudentNotifications from './pages/student/Notifications';
 
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import AdminRooms from './pages/admin/AdminRooms';
 import AdminRoomRequests from './pages/admin/AdminRoomRequests';
+import ApplicationManagement from './pages/admin/ApplicationManagement';
+import AdminNotifications from './pages/admin/Notifications';
+import PaymentManagement from './pages/admin/PaymentManagement';
 
 // Warden Pages
 import WardenDashboard from './pages/warden/WardenDashboard';
@@ -88,10 +93,11 @@ const App = () => {
           >
             <Route path="dashboard" element={<StudentDashboard />} />
             <Route path="application" element={<Application />} />
+            <Route path="application-status" element={<ApplicationStatus />} />
             <Route path="payment" element={<Payment />} />
             <Route path="complaints" element={<Complaints />} />
             <Route path="room" element={<RoomDetails />} />
-            <Route path="notifications" element={<PlaceholderPage title="Notifications" />} />
+            <Route path="notifications" element={<StudentNotifications />} />
             <Route path="materials" element={<PlaceholderPage title="Study Materials" />} />
             <Route path="roommates" element={<PlaceholderPage title="Roommates" />} />
             <Route path="leave" element={<PlaceholderPage title="Leave Request" />} />
@@ -114,7 +120,9 @@ const App = () => {
             <Route path="users" element={<UserManagement />} />
                         <Route path="rooms" element={<AdminRooms />} />
             <Route path="room-requests" element={<AdminRoomRequests />} />
-            <Route path="applications" element={<PlaceholderPage title="Applications" />} />
+            <Route path="applications" element={<ApplicationManagement />} />
+            <Route path="notifications" element={<AdminNotifications />} />
+            <Route path="payments" element={<PaymentManagement />} />
             <Route path="complaints" element={<PlaceholderPage title="Complaints" />} />
             <Route path="fees" element={<PlaceholderPage title="Fee Management" />} />
             <Route path="reports" element={<PlaceholderPage title="Reports" />} />

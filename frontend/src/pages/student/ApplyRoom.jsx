@@ -193,14 +193,85 @@ const Application = () => {
     return variants[status] || variants.none;
   };
 
-  const handleFileUpload = (docType, file) => {
-    setFormData({
-      ...formData,
-      documents: {
-        ...formData.documents,
-        [docType]: file
+  const handleFileUpload = async (docType, file) => {
+    if (!file) {
+      setFormData({
+        ...formData,
+        documents: {
+          ...formData.documents,
+          [docType]: null
+        }
+      });
+      return;
+    }
+
+    try {
+      // Create FormData for file upload
+      const uploadFormData = new FormData();
+      uploadFormData.append('document', file);
+
+      // Upload file to backend
+      const response = await fetch('http://localhost:5000/api/applications/upload', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: uploadFormData
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        const documentObj = {
+          name: result.data.originalName,
+          url: `http://localhost:5000${result.data.url}`,
+          uploadedAt: new Date().toISOString(),
+          filename: result.data.filename
+        };
+        
+        setFormData({
+          ...formData,
+          documents: {
+            ...formData.documents,
+            [docType]: documentObj
+          }
+        });
+      } else {
+        console.error('Upload failed:', result.message);
+        // Fallback to blob URL if upload fails
+        const documentObj = {
+          name: file.name || `${docType} Document`,
+          url: URL.createObjectURL(file),
+          uploadedAt: new Date().toISOString(),
+          file: file
+        };
+        
+        setFormData({
+          ...formData,
+          documents: {
+            ...formData.documents,
+            [docType]: documentObj
+          }
+        });
       }
-    });
+    } catch (error) {
+      console.error('Upload error:', error);
+      // Fallback to blob URL if upload fails
+      const documentObj = {
+        name: file.name || `${docType} Document`,
+        url: URL.createObjectURL(file),
+        uploadedAt: new Date().toISOString(),
+        file: file
+      };
+      
+      setFormData({
+        ...formData,
+        documents: {
+          ...formData.documents,
+          [docType]: documentObj
+        }
+      });
+    }
   };
 
   const handleRoomSelection = (room) => {
@@ -790,12 +861,16 @@ const Application = () => {
                 Start your hostel application process by filling out the form below. 
                 Make sure you have all required documents ready.
               </p>
-              <Button
-                onClick={() => setShowForm(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white border-0"
-              >
-                Start Application
-              </Button>
+              <div className="flex justify-center">
+                <Button
+                  variant="outline"
+                  onClick={() => navigate('/rooms')}
+                  className="flex items-center gap-2"
+                >
+                  <Bed className="h-4 w-4" />
+                  Go to Rooms
+                </Button>
+              </div>
             </div>
           )}
         </div>

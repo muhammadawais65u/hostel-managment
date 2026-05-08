@@ -79,7 +79,9 @@ export const studentAPI = {
   getComplaints: () => api.get('/students/complaints'),
   getFees: () => api.get('/students/fees'),
   getNotifications: () => api.get('/students/notifications'),
-  markNotificationRead: (id) => api.put(`/students/notifications/${id}/read`),
+  markNotificationRead: (ids) => api.put('/students/notifications/read', { ids }),
+  deleteNotifications: (ids) => api.delete('/students/notifications', { data: { ids } }),
+  makePayment: (paymentData) => api.post('/payments/process', paymentData),
 };
 
 // Admin API
@@ -89,6 +91,7 @@ export const adminAPI = {
   toggleUserStatus: (id) => api.put(`/admin/users/${id}/status`),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
   getAnalytics: () => api.get('/admin/analytics'),
+  getPayments: () => api.get('/payments/admin/all'),
 };
 
 // Warden API

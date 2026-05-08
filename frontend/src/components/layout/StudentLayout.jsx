@@ -30,6 +30,7 @@ const StudentLayout = () => {
   const menuItems = [
     { icon: Home, label: 'Dashboard', path: '/student/dashboard', active: location.pathname === '/student/dashboard' },
     { icon: FileText, label: 'Apply for Room', path: '/student/application' },
+    { icon: FileText, label: 'Application Status', path: '/student/application-status' },
     { icon: CreditCard, label: 'Payment', path: '/student/payment' },
     { icon: MessageSquare, label: 'Complaints', path: '/student/complaints' },
     { icon: Bell, label: 'Notifications', path: '/student/notifications' },

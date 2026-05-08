@@ -3,15 +3,48 @@ const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const { applicationValidation } = require('../utils/validators');
 const { User, Student, Hostel, Room, Application, Notification } = require('../models');
+const upload = require('../middleware/upload');
+const { sendOTPEmail, sendWelcomeEmail, sendApplicationStatusEmail } = require('../utils/emailService');
 
 // All routes are protected
 router.use(protect);
 
-// @route   POST /api/applications
-// @desc    Submit hostel application
+// @route   POST /api/applications/upload
+// @desc    Upload single document
 // @access  Private (Student)
-router.post('/', authorize('student'), applicationValidation, async (req, res) => {
-  console.log('Application Request - User:', req.user.id);
+router.post('/upload', authorize('student'), upload.single('document'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: 'No file uploaded'
+      });
+    }
+
+    const fileUrl = `/uploads/documents/${req.file.filename}`;
+    
+    res.status(200).json({
+      success: true,
+      data: {
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        url: fileUrl,
+        size: req.file.size,
+        mimetype: req.file.mimetype
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// @route   POST /api/applications
+// @desc    Submit new application
+// @access  Private (Student)
+router.post('/', authorize('student'), async (req, res) => {
   console.log('Application Request - Body:', JSON.stringify(req.body, null, 2));
   try {
     const student = await Student.findOne({ user: req.user.id });
@@ -29,6 +62,37 @@ router.post('/', authorize('student'), applicationValidation, async (req, res) =
       preferredRoom = await Room.findById(req.body.preferredRoom);
     }
 
+    // Process documents - create proper document objects with URLs
+    let documents = {};
+    if (req.body.documents) {
+      try {
+        const parsedDocuments = typeof req.body.documents === 'string' 
+          ? JSON.parse(req.body.documents) 
+          : req.body.documents;
+        
+        documents = {
+          idProof: parsedDocuments.idProof ? {
+            name: 'ID Proof',
+            url: parsedDocuments.idProof.url || `/uploads/documents/${student._id}_idproof_${Date.now()}.pdf`,
+            uploadedAt: parsedDocuments.idProof.uploadedAt || new Date()
+          } : null,
+          addressProof: parsedDocuments.addressProof ? {
+            name: 'Address Proof',
+            url: parsedDocuments.addressProof.url || `/uploads/documents/${student._id}_addressproof_${Date.now()}.pdf`,
+            uploadedAt: parsedDocuments.addressProof.uploadedAt || new Date()
+          } : null,
+          previousMarks: parsedDocuments.previousMarks ? {
+            name: 'Previous Marks',
+            url: parsedDocuments.previousMarks.url || `/uploads/documents/${student._id}_marks_${Date.now()}.pdf`,
+            uploadedAt: parsedDocuments.previousMarks.uploadedAt || new Date()
+          } : null
+        };
+      } catch (err) {
+        console.log('Document parsing error:', err);
+        documents = {};
+      }
+    }
+
     // Create application
     const application = await Application.create({
       student: student._id,
@@ -40,7 +104,7 @@ router.post('/', authorize('student'), applicationValidation, async (req, res) =
       emergencyContact: req.body.emergencyContact,
       purposeOfStay: req.body.purposeOfStay,
       specialRequirements: req.body.specialRequirements || '',
-      documents: req.body.documents || {},
+      documents: documents,
       remarks: req.body.remarks || ''
     });
 
@@ -100,7 +164,6 @@ router.get('/', authorize('admin'), async (req, res) => {
           select: 'name email phone'
         }
       })
-      .populate('hostel', 'name code type')
       .populate('preferredRoom', 'roomNumber type')
       .populate('processedBy', 'name')
       .sort({ createdAt: -1 })
@@ -177,7 +240,6 @@ router.get('/:id', async (req, res) => {
           select: 'name email phone'
         }
       })
-      .populate('hostel', 'name code type location facilities')
       .populate('preferredRoom', 'roomNumber type capacity')
       .populate('processedBy', 'name');
 
@@ -209,7 +271,7 @@ router.put('/:id/approve', authorize('admin'), async (req, res) => {
 
     const application = await Application.findById(req.params.id)
       .populate('student', 'user')
-      .populate('hostel', 'name');
+;
 
     if (!application) {
       return res.status(404).json({
@@ -229,10 +291,10 @@ router.put('/:id/approve', authorize('admin'), async (req, res) => {
     let allocatedRoom = null;
     if (roomId) {
       const room = await Room.findById(roomId);
-      if (!room || room.hostel.toString() !== application.hostel._id.toString()) {
+      if (!room) {
         return res.status(400).json({
           success: false,
-          message: 'Invalid room for this hostel'
+          message: 'Room not found'
         });
       }
 
@@ -251,7 +313,6 @@ router.put('/:id/approve', authorize('admin'), async (req, res) => {
       // Update student
       await Student.findByIdAndUpdate(application.student._id, {
         room: room._id,
-        hostel: application.hostel._id,
         applicationStatus: 'approved'
       });
 
@@ -269,10 +330,26 @@ router.put('/:id/approve', authorize('admin'), async (req, res) => {
     await Notification.create({
       user: application.student.user,
       title: 'Application Approved',
-      message: `Your hostel application for ${application.hostel.name} has been approved${allocatedRoom ? ` and Room ${allocatedRoom.roomNumber} has been allocated` : ''}.`,
+      message: `Your hostel application has been approved${allocatedRoom ? ` and Room ${allocatedRoom.roomNumber} has been allocated` : ''}.`,
       type: 'success',
       relatedTo: { model: 'Application', id: application._id }
     });
+
+    // Send email notification to student
+    try {
+      const student = await Student.findById(application.student._id).populate('user', 'name email');
+      if (student && student.user && student.user.email) {
+        await sendApplicationStatusEmail(
+          student.user.email,
+          student.user.name,
+          'approved',
+          adminRemarks,
+          allocatedRoom
+        );
+      }
+    } catch (emailError) {
+      console.error('Failed to send approval email:', emailError);
+    }
 
     res.status(200).json({
       success: true,
@@ -296,7 +373,7 @@ router.put('/:id/reject', authorize('admin'), async (req, res) => {
 
     const application = await Application.findById(req.params.id)
       .populate('student', 'user')
-      .populate('hostel', 'name');
+;
 
     if (!application) {
       return res.status(404).json({
@@ -328,10 +405,25 @@ router.put('/:id/reject', authorize('admin'), async (req, res) => {
     await Notification.create({
       user: application.student.user,
       title: 'Application Rejected',
-      message: `Your hostel application for ${application.hostel.name} has been rejected. ${adminRemarks || ''}`,
+      message: `Your hostel application has been rejected. ${adminRemarks || ''}`,
       type: 'error',
       relatedTo: { model: 'Application', id: application._id }
     });
+
+    // Send email notification to student
+    try {
+      const student = await Student.findById(application.student._id).populate('user', 'name email');
+      if (student && student.user && student.user.email) {
+        await sendApplicationStatusEmail(
+          student.user.email,
+          student.user.name,
+          'rejected',
+          adminRemarks
+        );
+      }
+    } catch (emailError) {
+      console.error('Failed to send rejection email:', emailError);
+    }
 
     res.status(200).json({
       success: true,
@@ -364,6 +456,85 @@ router.delete('/:id', authorize('admin'), async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Application deleted'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// @route   PUT /api/applications/:id
+// @desc    Update application status (simple approve/reject)
+// @access  Private (Admin)
+router.put('/:id', authorize('admin'), async (req, res) => {
+  try {
+    const { status } = req.body;
+
+    if (!['approved', 'rejected'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status. Must be approved or rejected.'
+      });
+    }
+
+    const application = await Application.findById(req.params.id)
+      .populate('student', 'user');
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Application not found'
+      });
+    }
+
+    if (application.status !== 'pending') {
+      return res.status(400).json({
+        success: false,
+        message: `Application is already ${application.status}`
+      });
+    }
+
+    // Update application
+    application.status = status;
+    application.processedBy = req.user.id;
+    application.processedAt = Date.now();
+    application.adminRemarks = req.body.adminRemarks || '';
+    await application.save();
+
+    // Update student application status
+    await Student.findByIdAndUpdate(application.student._id, {
+      applicationStatus: status
+    });
+
+    // Create notification for student
+    await Notification.create({
+      user: application.student.user,
+      title: `Application ${status.charAt(0).toUpperCase() + status.slice(1)}`,
+      message: `Your hostel application has been ${status}.`,
+      type: status === 'approved' ? 'success' : 'error',
+      relatedTo: { model: 'Application', id: application._id }
+    });
+
+    // Send email notification to student
+    try {
+      const student = await Student.findById(application.student._id).populate('user', 'name email');
+      if (student && student.user && student.user.email) {
+        await sendApplicationStatusEmail(
+          student.user.email,
+          student.user.name,
+          status,
+          req.body.adminRemarks
+        );
+      }
+    } catch (emailError) {
+      console.error('Failed to send status email:', emailError);
+    }
+
+    res.status(200).json({
+      success: true,
+      data: application
     });
   } catch (error) {
     res.status(500).json({

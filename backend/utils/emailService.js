@@ -113,7 +113,139 @@ const sendWelcomeEmail = async (email, name) => {
   }
 };
 
+// Send payment confirmation email
+const sendPaymentConfirmationEmail = async (email, name, amount, roomNumber, transactionId) => {
+  try {
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Payment Confirmation - University Hostel Management System',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Management System</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Payment Confirmation</p>
+          </div>
+          
+          <div style="background: #f9f9f9; padding: 30px; border-radius: 10px; margin: 20px 0;">
+            <h2 style="color: #333; margin: 0 0 20px 0;">Payment Completed Successfully!</h2>
+            <p style="color: #666; line-height: 1.6; margin: 0 0 20px 0;">
+              Hello ${name},
+            </p>
+            <p style="color: #666; line-height: 1.6; margin: 0 0 20px 0;">
+              Your payment has been processed successfully. Below are your payment details:
+            </p>
+            
+            <div style="background: #fff; border: 2px solid #28a745; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Transaction ID:</strong>
+                <span style="color: #333; margin-left: 10px;">${transactionId}</span>
+              </div>
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Amount Paid:</strong>
+                <span style="color: #28a745; font-weight: bold; margin-left: 10px;">₹${amount}</span>
+              </div>
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Room Number:</strong>
+                <span style="color: #333; margin-left: 10px;">${roomNumber}</span>
+              </div>
+              <div>
+                <strong style="color: #666;">Payment Date:</strong>
+                <span style="color: #333; margin-left: 10px;">${new Date().toLocaleDateString()}</span>
+              </div>
+            </div>
+            
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #155724; margin: 0; font-size: 14px;">
+                <strong>Next Steps:</strong> You can now check in to your allocated room. Please bring this payment confirmation when you arrive at the hostel.
+              </p>
+            </div>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="color: #999; font-size: 12px; margin: 0;">
+              This is an automated email. Please do not reply to this message.
+            </p>
+            <p style="color: #999; font-size: 12px; margin: 10px 0 0 0;">
+              © ${new Date().getFullYear()} University Hostel Management System
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Payment confirmation email sent successfully');
+  } catch (error) {
+    console.error('Error sending payment confirmation email:', error);
+    throw error;
+  }
+};
+
+// Send application status email
+const sendApplicationStatusEmail = async (email, name, status, adminRemarks = '', allocatedRoom = null) => {
+  try {
+    const transporter = createTransporter();
+    
+    const statusColor = status === 'approved' ? '#28a745' : '#dc3545';
+    const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: `Application ${statusText} - University Hostel Management System`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Management System</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Application Status Update</p>
+          </div>
+          
+          <div style="background: #f9f9f9; padding: 30px; border-radius: 10px; margin: 20px 0;">
+            <h2 style="color: #333; margin: 0 0 20px 0;">Hello ${name},</h2>
+            <p style="color: #666; line-height: 1.6; margin: 0 0 20px 0;">
+              Your hostel application has been <strong style="color: ${statusColor};">${statusText}</strong>.
+              ${allocatedRoom ? `Room <strong>${allocatedRoom.roomNumber}</strong> has been allocated to you.` : ''}
+            </p>
+            
+            ${adminRemarks ? `
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #856404; margin: 0; font-size: 14px;">
+                <strong>Admin Remarks:</strong> ${adminRemarks}
+              </p>
+            </div>
+            ` : ''}
+            
+            ${status === 'approved' ? `
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #155724; margin: 0; font-size: 14px;">
+                <strong>Next Steps:</strong> Please visit your student dashboard to complete the payment process and receive further instructions.
+              </p>
+            </div>
+            ` : ''}
+            
+            <p style="color: #999; font-size: 12px; margin: 20px 0 0 0;">
+              If you have any questions, please contact the hostel administration office.
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Application ${status} email sent to ${email}`);
+    return true;
+  } catch (error) {
+    console.error('Error sending application status email:', error);
+    return false;
+  }
+};
+
 module.exports = {
   sendOTPEmail,
-  sendWelcomeEmail
+  sendWelcomeEmail,
+  sendApplicationStatusEmail,
+  sendPaymentConfirmationEmail
 };

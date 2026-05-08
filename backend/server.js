@@ -16,6 +16,7 @@ const rooms = require('./routes/rooms');
 const applications = require('./routes/applications');
 const complaints = require('./routes/complaints');
 const fees = require('./routes/fees');
+const payments = require('./routes/payments');
 const admin = require('./routes/admin');
 const warden = require('./routes/warden');
 
@@ -50,6 +51,12 @@ if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir);
 }
 
+// Create documents subdirectory in uploads
+const documentsDir = path.join(uploadsDir, 'documents');
+if (!fs.existsSync(documentsDir)) {
+  fs.mkdirSync(documentsDir);
+}
+
 // Create public directory for images if it doesn't exist
 const publicDir = path.join(__dirname, 'public');
 if (!fs.existsSync(publicDir)) {
@@ -73,6 +80,7 @@ app.use('/api/rooms', rooms);
 app.use('/api/applications', applications);
 app.use('/api/complaints', complaints);
 app.use('/api/fees', fees);
+app.use('/api/payments', payments);
 app.use('/api/admin', admin);
 app.use('/api/warden', warden);
 
