@@ -56,7 +56,7 @@ router.post('/', authorize('admin'), async (req, res) => {
     await Notification.create({
       user: student.user._id,
       title: 'New Fee Added',
-      message: `A ${feeType.replace('_', ' ')} of ₹${amount} has been added for ${month} ${year}.`,
+      message: `A ${feeType.replace('_', ' ')} of PKR ${amount} has been added for ${month} ${year}.`,
       type: 'fee',
       relatedTo: { model: 'Fee', id: fee._id }
     });
@@ -234,7 +234,7 @@ router.put('/:id/pay', authorize('student'), async (req, res) => {
       await Notification.create({
         user: admin._id,
         title: 'Payment Received',
-        message: `A payment of ₹${amount} has been received from student. Please verify.`,
+        message: `A payment of PKR ${amount} has been received from student. Please verify.`,
         type: 'fee',
         relatedTo: { model: 'Fee', id: fee._id }
       });
@@ -288,7 +288,7 @@ router.put('/:id/verify', authorize('admin'), async (req, res) => {
     await Notification.create({
       user: fee.user,
       title: 'Payment Verified',
-      message: `Your payment of ₹${fee.paidAmount} has been verified.`,
+      message: `Your payment of PKR ${fee.paidAmount} has been verified.`,
       type: 'success',
       relatedTo: { model: 'Fee', id: fee._id }
     });

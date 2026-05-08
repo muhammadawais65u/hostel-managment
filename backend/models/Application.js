@@ -109,6 +109,28 @@ const applicationSchema = new mongoose.Schema({
     trim: true,
     default: ''
   },
+  paymentStatus: {
+    type: String,
+    enum: ['pending', 'paid', 'failed'],
+    default: 'pending'
+  },
+  paymentDetails: {
+    transactionId: { type: String, default: '' },
+    amount: { type: Number, default: 0 },
+    cardLastFour: { type: String, default: '' },
+    cardholderName: { type: String, default: '' },
+    paymentDate: { type: Date, default: null },
+    nextPaymentDate: { type: Date, default: null },
+    paymentFrequency: { type: String, enum: ['monthly', 'quarterly', 'semester', 'yearly', 'one-time', 'custom'], default: null },
+    customAmount: { type: Number, default: null },
+    rescheduleReason: { type: String, default: '' },
+    rescheduledAt: { type: Date, default: null },
+    rescheduledBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
+    studentName: { type: String, default: '' },
+    studentEmail: { type: String, default: '' },
+    department: { type: String, default: '' },
+    rollNumber: { type: String, default: '' }
+  },
   createdAt: {
     type: Date,
     default: Date.now

@@ -17,7 +17,8 @@ import {
   Eye,
   Download,
   CreditCard,
-  ExternalLink
+  ExternalLink,
+  X
 } from 'lucide-react';
 import { studentAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';

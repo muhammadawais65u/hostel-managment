@@ -49,6 +49,7 @@ const Application = () => {
     purposeOfStay: '',
     semester: '',
     specialRequirements: '',
+    paymentFrequency: 'monthly',
     emergencyContact: {
       name: '',
       relationship: '',
@@ -746,6 +747,21 @@ const Application = () => {
                         <option value="internship">Internship</option>
                         <option value="training">Training Program</option>
                         <option value="other">Other</option>
+                      </select>
+                    </div>
+
+                    {/* Payment Frequency */}
+                    <div>
+                      <label className="block text-gray-700 text-sm font-semibold mb-3">
+                        Payment Frequency <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={formData.paymentFrequency}
+                        onChange={(e) => setFormData({...formData, paymentFrequency: e.target.value})}
+                        className="w-full px-4 py-3 bg-white border border-gray-300 rounded-xl text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        required
+                      >
+                        <option value="monthly">Monthly</option>
                       </select>
                     </div>
 

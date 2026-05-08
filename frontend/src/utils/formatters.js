@@ -29,13 +29,13 @@ export const formatDateTime = (date) => {
   return `${formatDate(date)} at ${formatTime(date)}`;
 };
 
-// Currency formatter (INR)
+// Currency formatter (PKR)
 export const formatCurrency = (amount) => {
-  if (amount === null || amount === undefined) return '₹0';
+  if (amount === null || amount === undefined) return 'PKR 0';
 
-  return new Intl.NumberFormat('en-IN', {
+  return new Intl.NumberFormat('en-PK', {
     style: 'currency',
-    currency: 'INR',
+    currency: 'PKR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);

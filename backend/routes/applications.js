@@ -105,7 +105,10 @@ router.post('/', authorize('student'), async (req, res) => {
       purposeOfStay: req.body.purposeOfStay,
       specialRequirements: req.body.specialRequirements || '',
       documents: documents,
-      remarks: req.body.remarks || ''
+      remarks: req.body.remarks || '',
+      paymentDetails: {
+        paymentFrequency: req.body.paymentFrequency || 'monthly'
+      }
     });
 
     // Update student application status

@@ -34,10 +34,37 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [data, setData] = useState(null);
+  const [paidPayments, setPaidPayments] = useState([]);
+  const [approvedApplications, setApprovedApplications] = useState([]);
+  const [calculatedStats, setCalculatedStats] = useState({
+    paidFees: 0,
+    pendingFees: 0,
+    totalFees: 0
+  });
 
   useEffect(() => {
     fetchDashboardData();
+    fetchPaymentData();
   }, []);
+
+  useEffect(() => {
+    calculateStatistics();
+  }, [paidPayments, approvedApplications]);
+
+  const calculateStatistics = () => {
+    const paidAmount = paidPayments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+    const unpaidAmount = approvedApplications.reduce((sum, app) => {
+      const price = app.roomInfo?.price || 0;
+      return sum + (typeof price === 'string' ? parseFloat(price) || 0 : price);
+    }, 0);
+    const totalFees = paidAmount + unpaidAmount;
+    
+    setCalculatedStats({
+      paidFees: paidAmount,
+      pendingFees: unpaidAmount,
+      totalFees: totalFees
+    });
+  };
 
   const fetchDashboardData = async () => {
     try {
@@ -51,6 +78,23 @@ const StudentDashboard = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchPaymentData = async () => {
+    try {
+      // Fetch payment history
+      const paymentResponse = await studentAPI.getPaymentHistory();
+      setPaidPayments(paymentResponse.data.data || []);
+      
+      // Fetch approved applications
+      const applicationResponse = await studentAPI.getApplications();
+      const approved = applicationResponse.data.data.filter(app => 
+        app.status === 'approved' && app.paymentStatus !== 'paid'
+      );
+      setApprovedApplications(approved);
+    } catch (err) {
+      console.error('Payment data fetch error:', err);
     }
   };
 
@@ -217,15 +261,15 @@ const StudentDashboard = () => {
                     <div className="grid sm:grid-cols-3 gap-4">
                       <div className="bg-green-50 rounded-xl p-4 border border-green-200 text-center">
                         <p className="text-green-600 text-sm font-medium mb-2">Paid</p>
-                        <p className="text-gray-800 text-2xl font-bold">₹{stats?.paidFees?.toLocaleString() || 0}</p>
+                        <p className="text-gray-800 text-2xl font-bold">PKR {calculatedStats.paidFees.toLocaleString()}</p>
                       </div>
                       <div className="bg-red-50 rounded-xl p-4 border border-red-200 text-center">
                         <p className="text-red-600 text-sm font-medium mb-2">Pending</p>
-                        <p className="text-gray-800 text-2xl font-bold">₹{stats?.pendingFees?.toLocaleString() || 0}</p>
+                        <p className="text-gray-800 text-2xl font-bold">PKR {calculatedStats.pendingFees.toLocaleString()}</p>
                       </div>
                       <div className="bg-blue-50 rounded-xl p-4 border border-blue-200 text-center">
                         <p className="text-blue-600 text-sm font-medium mb-2">Total</p>
-                        <p className="text-gray-800 text-2xl font-bold">₹{stats?.totalFees?.toLocaleString() || 0}</p>
+                        <p className="text-gray-800 text-2xl font-bold">PKR {calculatedStats.totalFees.toLocaleString()}</p>
                       </div>
                     </div>
                   </div>

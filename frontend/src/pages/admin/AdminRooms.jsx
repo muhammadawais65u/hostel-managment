@@ -55,7 +55,9 @@ const AdminRooms = () => {
 
   const roomTypes = [
     { value: 'single', label: 'Single' },
-    { value: 'shared', label: 'Shared' }
+    { value: 'double', label: 'Double' },
+    { value: 'triple', label: 'Triple' },
+    { value: 'quad', label: 'Quad' }
   ];
 
   const amenitiesList = [

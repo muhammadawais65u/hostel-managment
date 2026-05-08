@@ -78,6 +78,8 @@ export const studentAPI = {
   submitApplication: (data) => api.post('/applications', data),
   getComplaints: () => api.get('/students/complaints'),
   getFees: () => api.get('/students/fees'),
+  getPaymentHistory: () => api.get('/payments/history?t=' + Date.now()),
+  getRescheduledPayments: () => api.get('/payments/rescheduled?t=' + Date.now()),
   getNotifications: () => api.get('/students/notifications'),
   markNotificationRead: (ids) => api.put('/students/notifications/read', { ids }),
   deleteNotifications: (ids) => api.delete('/students/notifications', { data: { ids } }),
@@ -92,6 +94,8 @@ export const adminAPI = {
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
   getAnalytics: () => api.get('/admin/analytics'),
   getPayments: () => api.get('/payments/admin/all'),
+  reschedulePayment: (data) => api.post('/payments/reschedule', data),
+  getRescheduledPayments: () => api.get('/payments/admin/rescheduled?t=' + Date.now()),
 };
 
 // Warden API

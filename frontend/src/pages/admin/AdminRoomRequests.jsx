@@ -308,7 +308,7 @@ const AdminRoomRequests = () => {
                             <span className="text-sm text-gray-600">{roomInfo.hostel}</span>
                           </div>
                           <div className="text-sm text-green-600 font-medium">
-                            ₹{roomInfo.price}/month
+                            PKR {roomInfo.price}/month
                           </div>
                         </div>
                       </td>
@@ -453,7 +453,7 @@ const AdminRoomRequests = () => {
                   <div className="bg-blue-50 rounded-xl p-4">
                     <p className="text-sm text-gray-600 mb-1">Monthly Rent</p>
                     <p className="font-semibold text-green-600">
-                      ₹{getRoomInfo(selectedRequest.selectedRoom).price}
+                      PKR {getRoomInfo(selectedRequest.selectedRoom).price}
                     </p>
                   </div>
                   <div className="bg-blue-50 rounded-xl p-4">

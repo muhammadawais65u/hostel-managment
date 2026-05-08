@@ -145,7 +145,7 @@ const sendPaymentConfirmationEmail = async (email, name, amount, roomNumber, tra
               </div>
               <div style="margin-bottom: 15px;">
                 <strong style="color: #666;">Amount Paid:</strong>
-                <span style="color: #28a745; font-weight: bold; margin-left: 10px;">₹${amount}</span>
+                <span style="color: #28a745; font-weight: bold; margin-left: 10px;">PKR ${amount}</span>
               </div>
               <div style="margin-bottom: 15px;">
                 <strong style="color: #666;">Room Number:</strong>
@@ -243,9 +243,86 @@ const sendApplicationStatusEmail = async (email, name, status, adminRemarks = ''
   }
 };
 
+// Send payment reschedule email
+const sendPaymentRescheduleEmail = async (email, name, nextPaymentDate, paymentFrequency, amount, reason) => {
+  try {
+    const transporter = createTransporter();
+    
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Payment Rescheduled - University Hostel Management System',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Management System</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Payment Rescheduled</p>
+          </div>
+          
+          <div style="background: #f9f9f9; padding: 30px; border-radius: 10px; margin: 20px 0;">
+            <h2 style="color: #333; margin: 0 0 20px 0;">Hello ${name},</h2>
+            <p style="color: #666; line-height: 1.6; margin: 0 0 20px 0;">
+              Your payment has been rescheduled by the hostel administration. Below are your updated payment details:
+            </p>
+            
+            <div style="background: #fff; border: 2px solid #ffc107; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Next Payment Date:</strong>
+                <span style="color: #333; font-weight: bold; margin-left: 10px;">${new Date(nextPaymentDate).toLocaleDateString()}</span>
+              </div>
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Payment Frequency:</strong>
+                <span style="color: #333; margin-left: 10px;">${paymentFrequency.charAt(0).toUpperCase() + paymentFrequency.slice(1)}</span>
+              </div>
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Amount:</strong>
+                <span style="color: #ffc107; font-weight: bold; margin-left: 10px;">PKR ${amount}</span>
+              </div>
+              <div>
+                <strong style="color: #666;">Reason:</strong>
+                <span style="color: #333; margin-left: 10px;">${reason}</span>
+              </div>
+            </div>
+            
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #856404; margin: 0; font-size: 14px;">
+                <strong>Important:</strong> Please ensure you make the payment on or before the new due date to avoid any late fees or service interruption.
+              </p>
+            </div>
+            
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/student/payment" 
+                 style="background: #ffc107; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                View Payment Details
+              </a>
+            </div>
+          </div>
+          
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="color: #999; font-size: 12px; margin: 0;">
+              This is an automated email. Please do not reply to this message.
+            </p>
+            <p style="color: #999; font-size: 12px; margin: 10px 0 0 0;">
+              © ${new Date().getFullYear()} University Hostel Management System
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Payment reschedule email sent successfully');
+    return true;
+  } catch (error) {
+    console.error('Error sending payment reschedule email:', error);
+    return false;
+  }
+};
+
 module.exports = {
   sendOTPEmail,
   sendWelcomeEmail,
   sendApplicationStatusEmail,
-  sendPaymentConfirmationEmail
+  sendPaymentConfirmationEmail,
+  sendPaymentRescheduleEmail
 };

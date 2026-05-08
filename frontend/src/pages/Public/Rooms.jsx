@@ -98,7 +98,9 @@ const Rooms = () => {
   const roomTypes = [
     { id: 'all', name: 'All Rooms' },
     { id: 'single', name: 'Single Room' },
-    { id: 'shared', name: 'Shared Room' }
+    { id: 'double', name: 'Double Room' },
+    { id: 'triple', name: 'Triple Room' },
+    { id: 'quad', name: 'Quad Room' }
   ];
 
   const amenities = {
