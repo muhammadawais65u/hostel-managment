@@ -5,7 +5,7 @@ const path = require('path');
 const fs = require('fs');
 const { protect, authorize } = require('../middleware/auth');
 const { roomValidation } = require('../utils/validators');
-const { Room, Student } = require('../models');
+const { Room, Student, Application } = require('../models');
 
 // Multer storage configuration
 const storage = multer.diskStorage({
@@ -37,6 +37,45 @@ const upload = multer({
 });
 
 // Public routes
+
+// @route   GET /api/rooms/occupancy
+// @desc    Get room occupancy data based on payments
+// @access  Public
+router.get('/occupancy', async (req, res) => {
+  try {
+    // Get all paid applications with room info
+    const paidApplications = await Application.find({
+      paymentStatus: 'paid',
+      'roomInfo.roomNumber': { $exists: true, $ne: '' }
+    }).lean();
+
+    // Calculate occupancy per room
+    const occupancyMap = {};
+    if (paidApplications && paidApplications.length > 0) {
+      paidApplications.forEach(app => {
+        if (app.roomInfo && app.roomInfo.roomNumber) {
+          const roomNumber = app.roomInfo.roomNumber;
+          if (!occupancyMap[roomNumber]) {
+            occupancyMap[roomNumber] = 0;
+          }
+          occupancyMap[roomNumber]++;
+        }
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: occupancyMap
+    });
+  } catch (error) {
+    console.error('Error fetching room occupancy:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message,
+      data: {}
+    });
+  }
+});
 
 // @route   GET /api/rooms
 // @desc    Get all rooms
@@ -327,12 +366,6 @@ router.delete('/:id', authorize('admin'), async (req, res) => {
         message: 'Cannot delete room with occupants'
       });
     }
-
-    // Update hostel totals
-    const hostel = await Hostel.findById(room.hostel);
-    hostel.totalRooms -= 1;
-    hostel.totalCapacity -= room.capacity;
-    await hostel.save();
 
     await room.deleteOne();
 

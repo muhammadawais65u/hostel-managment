@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
-const { Room, Student, Complaint, Application, Notification } = require('../models');
+const { Room, Student, Complaint, Application, Notification, User } = require('../models');
 
 // All routes are protected and warden-only
 router.use(protect);
@@ -122,7 +122,7 @@ router.get('/students', async (req, res) => {
     if (room) query.room = room;
 
     const students = await Student.find(query)
-      .populate('user', 'name email phone')
+      .populate('user', 'name email phone role')
       .populate('room', 'roomNumber floor')
       .sort({ createdAt: -1 })
       .limit(limit * 1)
@@ -339,6 +339,229 @@ try {
     error: error.message
   });
 }
+});
+
+// @route   GET /api/warden/occupied-rooms
+// @desc    Get occupied rooms with student data (without payment info)
+// @access  Private (Warden)
+router.get('/occupied-rooms', async (req, res) => {
+  try {
+    // Get all paid applications with room info
+    const paidApplications = await Application.find({
+      paymentStatus: 'paid',
+      'roomInfo.roomNumber': { $exists: true, $ne: '' }
+    })
+    .populate('student', 'name email')
+    .sort({ 'paymentDetails.paymentDate': -1 });
+
+    // Group by room and extract student info (without payment details)
+    const roomsWithStudents = {};
+    
+    // First, collect all unique room numbers
+    const roomNumbers = [...new Set(paidApplications.map(app => app.roomInfo?.roomNumber).filter(Boolean))];
+    
+    // Find room details for all rooms
+    const rooms = await Room.find({ roomNumber: { $in: roomNumbers } });
+    
+    // Initialize rooms object
+    roomNumbers.forEach(roomNumber => {
+      const room = rooms.find(r => r.roomNumber === roomNumber);
+      const firstAppForRoom = paidApplications.find(app => app.roomInfo?.roomNumber === roomNumber);
+      roomsWithStudents[roomNumber] = {
+        roomNumber,
+        capacity: room?.capacity || 1,
+        type: room?.type || 'single',
+        monthlyRent: room?.monthlyRent || firstAppForRoom?.paymentDetails?.amount || 0,
+        floor: room?.floor || 1,
+        hostel: room?.hostel || { name: 'Unknown Hostel' },
+        features: room?.features || {},
+        students: []
+      };
+    });
+    
+    // Add students to rooms
+    paidApplications.forEach(app => {
+      const roomNumber = app.roomInfo?.roomNumber;
+      if (!roomNumber || !roomsWithStudents[roomNumber]) return;
+
+      console.log('Processing app:', app);
+      console.log('Student data:', app.student);
+      console.log('Personal info:', app.personalInfo);
+
+      // Add student if not already added
+      const studentExists = roomsWithStudents[roomNumber].students.some(s => s.email === app.student?.email);
+      if (!studentExists && app.student) {
+        const studentName = app.student.name || app.personalInfo?.name || 'Unknown Student';
+        console.log('Adding student:', studentName);
+        
+        roomsWithStudents[roomNumber].students.push({
+          name: studentName,
+          email: app.student.email,
+          rollNumber: app.personalInfo?.rollNumber,
+          department: app.personalInfo?.department
+        });
+      }
+    });
+
+    const occupiedRooms = Object.values(roomsWithStudents);
+
+    res.status(200).json({
+      success: true,
+      data: occupiedRooms
+    });
+  } catch (error) {
+    console.error('Warden occupied rooms error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// @route   PUT /api/warden/complaints/:id/reassign
+// @desc    Reassign complaint to admin (for critical complaints)
+// @access  Private (Warden)
+router.put('/complaints/:id/reassign', async (req, res) => {
+  try {
+    const { reassignmentReason } = req.body;
+    
+    if (!reassignmentReason) {
+      return res.status(400).json({
+        success: false,
+        message: 'Reassignment reason is required'
+      });
+    }
+
+    const complaint = await Complaint.findById(req.params.id);
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: 'Complaint not found'
+      });
+    }
+
+    // Find admin user to reassign to
+    const adminUsers = await User.find({ role: 'admin' });
+    if (!adminUsers || adminUsers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No admin users found to reassign to'
+      });
+    }
+
+    // Update complaint with reassignment info
+    complaint.reassignedTo = adminUsers[0]._id;
+    complaint.reassignedBy = req.user.id;
+    complaint.reassignedAt = new Date();
+    complaint.reassignmentReason = reassignmentReason;
+    complaint.status = 'in_progress';
+    complaint.assignedTo = adminUsers[0]._id;
+    
+    await complaint.save();
+
+    // Create notification for admin
+    await Notification.create({
+      user: adminUsers[0]._id,
+      title: 'Complaint Reassigned',
+      message: `A critical complaint has been reassigned to you by ${req.user.name}. Reason: ${reassignmentReason}`,
+      type: 'complaint',
+      relatedTo: { model: 'Complaint', id: complaint._id }
+    });
+
+    // Create notification for student
+    if (complaint.student) {
+      const student = await Student.findById(complaint.student).populate('user');
+      if (student && student.user) {
+        await Notification.create({
+          user: student.user._id,
+          title: 'Complaint Reassigned',
+          message: `Your complaint has been reassigned to admin for review. Reason: ${reassignmentReason}`,
+          type: 'complaint',
+          relatedTo: { model: 'Complaint', id: complaint._id }
+        });
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Complaint reassigned to admin successfully',
+      data: complaint
+    });
+  } catch (error) {
+    console.error('Reassignment error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// @route   POST /api/warden/report-issue
+// @desc    Report an issue to admin
+// @access  Private (Warden)
+router.post('/report-issue', async (req, res) => {
+  try {
+    const { complaintId, message, priority } = req.body;
+    
+    if (!complaintId || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'Complaint ID and message are required'
+      });
+    }
+
+    const complaint = await Complaint.findById(complaintId);
+    if (!complaint) {
+      return res.status(404).json({
+        success: false,
+        message: 'Complaint not found'
+      });
+    }
+
+    // Find admin user to notify
+    const adminUsers = await User.find({ role: 'admin' });
+    if (!adminUsers || adminUsers.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No admin users found to report to'
+      });
+    }
+
+    // Create notification for admin
+    await Notification.create({
+      user: adminUsers[0]._id,
+      title: 'Issue Reported by Warden',
+      message: message,
+      type: 'complaint',
+      relatedTo: { model: 'Complaint', id: complaint._id },
+      priority: priority || 'medium'
+    });
+
+    // Add a comment to the complaint about the report
+    complaint.comments.push({
+      user: req.user._id,
+      message: message,
+      createdAt: new Date()
+    });
+    
+    await complaint.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Issue reported to admin successfully',
+      data: {
+        complaintId,
+        reportedTo: adminUsers[0]._id,
+        message
+      }
+    });
+  } catch (error) {
+    console.error('Report issue error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
 });
 
 module.exports = router;

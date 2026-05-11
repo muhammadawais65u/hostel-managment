@@ -34,9 +34,15 @@ import AdminRoomRequests from './pages/admin/AdminRoomRequests';
 import ApplicationManagement from './pages/admin/ApplicationManagement';
 import AdminNotifications from './pages/admin/Notifications';
 import PaymentManagement from './pages/admin/PaymentManagement';
+import ComplaintManagement from './pages/admin/ComplaintManagement';
+import OccupiedRooms from './pages/admin/OccupiedRooms';
 
 // Warden Pages
 import WardenDashboard from './pages/warden/WardenDashboard';
+import WardenComplaints from './pages/warden/WardenComplaints';
+import WardenStudents from './pages/warden/WardenStudents';
+import WardenNotifications from './pages/warden/WardenNotifications';
+import WardenOccupiedRooms from './pages/warden/WardenOccupiedRooms';
 
 // Placeholder component
 const PlaceholderPage = ({ title }) => {
@@ -119,11 +125,12 @@ const App = () => {
             <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="users" element={<UserManagement />} />
                         <Route path="rooms" element={<AdminRooms />} />
+            <Route path="occupied-rooms" element={<OccupiedRooms />} />
             <Route path="room-requests" element={<AdminRoomRequests />} />
             <Route path="applications" element={<ApplicationManagement />} />
             <Route path="notifications" element={<AdminNotifications />} />
             <Route path="payments" element={<PaymentManagement />} />
-            <Route path="complaints" element={<PlaceholderPage title="Complaints" />} />
+            <Route path="complaints" element={<ComplaintManagement />} />
             <Route path="fees" element={<PlaceholderPage title="Fee Management" />} />
             <Route path="reports" element={<PlaceholderPage title="Reports" />} />
             <Route path="attendance" element={<PlaceholderPage title="Attendance" />} />
@@ -143,9 +150,10 @@ const App = () => {
           >
             <Route path="dashboard" element={<WardenDashboard />} />
             <Route path="hostels" element={<PlaceholderPage title="My Hostels" />} />
-            <Route path="rooms" element={<PlaceholderPage title="Room Management" />} />
-            <Route path="students" element={<PlaceholderPage title="Student Management" />} />
-            <Route path="complaints" element={<PlaceholderPage title="Complaint Management" />} />
+            <Route path="rooms" element={<WardenOccupiedRooms />} />
+            <Route path="students" element={<WardenStudents />} />
+            <Route path="complaints" element={<WardenComplaints />} />
+            <Route path="notifications" element={<WardenNotifications />} />
             <Route path="allocations" element={<PlaceholderPage title="Room Allocations" />} />
             <Route path="attendance" element={<PlaceholderPage title="Attendance" />} />
             <Route path="reports" element={<PlaceholderPage title="Reports" />} />

@@ -34,10 +34,6 @@ const StudentLayout = () => {
     { icon: CreditCard, label: 'Payment', path: '/student/payment' },
     { icon: MessageSquare, label: 'Complaints', path: '/student/complaints' },
     { icon: Bell, label: 'Notifications', path: '/student/notifications' },
-    { icon: BookOpen, label: 'Study Materials', path: '/student/materials' },
-    { icon: Users, label: 'Roommates', path: '/student/roommates' },
-    { icon: Shield, label: 'Leave Request', path: '/student/leave' },
-    { icon: HelpCircle, label: 'Help & Support', path: '/student/help' },
     { icon: Settings, label: 'Profile Settings', path: '/student/settings' },
   ];
 
@@ -60,7 +56,7 @@ const StudentLayout = () => {
                   <Building2 className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-gray-800 font-bold text-lg">UHMS</h1>
+                  <h1 className="text-gray-800 font-bold text-lg">UHBMS</h1>
                   <p className="text-gray-600 text-xs">Student Portal</p>
                 </div>
               </div>

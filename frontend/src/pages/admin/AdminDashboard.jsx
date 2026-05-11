@@ -64,8 +64,8 @@ const AdminDashboard = () => {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <Loader2 className="h-12 w-12 text-white animate-spin mx-auto mb-4" />
-          <p className="text-white text-lg">Loading Dashboard...</p>
+          <Loader2 className="h-12 w-12 text-blue-600 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600 text-lg">Loading Dashboard...</p>
         </div>
       </div>
     );
@@ -74,7 +74,7 @@ const AdminDashboard = () => {
   if (error) {
     return (
       <div className="max-w-4xl mx-auto">
-        <div className="bg-red-500/20 border border-red-500/30 backdrop-blur-sm text-red-200 px-6 py-4 rounded-xl">
+        <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-xl">
           {error}
         </div>
       </div>
@@ -84,13 +84,13 @@ const AdminDashboard = () => {
   const { stats, recentApplications, recentComplaints } = data || {};
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className=" mx-auto space-y-6">
       {/* Welcome Header */}
-      <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
+      <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Admin Dashboard</h1>
-            <p className="text-blue-200">Overview of room management system</p>
+            <h1 className="text-3xl font-bold text-gray-800 mb-2">Admin Dashboard</h1>
+            <p className="text-gray-600">Overview of room management system</p>
           </div>
           <div className="flex gap-3">
             <Button
@@ -120,84 +120,84 @@ const AdminDashboard = () => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-gradient-to-br from-blue-600/20 to-cyan-500/10 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/25 transition-all duration-300">
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-blue-500/20 rounded-xl">
-              <Users className="h-6 w-6 text-blue-300" />
+            <div className="p-3 bg-blue-50 rounded-xl">
+              <Users className="h-6 w-6 text-blue-600" />
             </div>
-            <TrendingUp className="h-4 w-4 text-green-400" />
+            <TrendingUp className="h-4 w-4 text-green-500" />
           </div>
-          <p className="text-blue-200 text-sm mb-2">Total Students</p>
-          <p className="text-white text-2xl font-bold">{stats?.totalStudents || 0}</p>
+          <p className="text-gray-600 text-sm mb-2">Total Students</p>
+          <p className="text-gray-800 text-2xl font-bold">{stats?.totalStudents || 0}</p>
         </div>
 
         
-        <div className="bg-gradient-to-br from-purple-600/20 to-pink-500/10 backdrop-blur-lg rounded-2xl p-6 border border-purple-500/30 hover:shadow-2xl hover:shadow-purple-500/25 transition-all duration-300">
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-purple-500/20 rounded-xl">
-              <DoorOpen className="h-6 w-6 text-purple-300" />
+            <div className="p-3 bg-purple-50 rounded-xl">
+              <DoorOpen className="h-6 w-6 text-purple-600" />
             </div>
-            <TrendingUp className="h-4 w-4 text-green-400" />
+            <TrendingUp className="h-4 w-4 text-green-500" />
           </div>
-          <p className="text-purple-200 text-sm mb-2">Total Rooms</p>
-          <p className="text-white text-2xl font-bold">{stats?.totalRooms || 0}</p>
+          <p className="text-gray-600 text-sm mb-2">Total Rooms</p>
+          <p className="text-gray-800 text-2xl font-bold">{stats?.totalRooms || 0}</p>
         </div>
 
-        <div className="bg-gradient-to-br from-orange-600/20 to-red-500/10 backdrop-blur-lg rounded-2xl p-6 border border-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/25 transition-all duration-300">
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300">
           <div className="flex items-center justify-between mb-4">
-            <div className="p-3 bg-orange-500/20 rounded-xl">
-              <Activity className="h-6 w-6 text-orange-300" />
+            <div className="p-3 bg-orange-50 rounded-xl">
+              <Activity className="h-6 w-6 text-orange-600" />
             </div>
-            <TrendingDown className="h-4 w-4 text-red-400" />
+            <TrendingDown className="h-4 w-4 text-red-500" />
           </div>
-          <p className="text-orange-200 text-sm mb-2">Occupancy</p>
-          <p className="text-white text-2xl font-bold">{stats?.occupancyRate || 0}%</p>
+          <p className="text-gray-600 text-sm mb-2">Occupancy</p>
+          <p className="text-gray-800 text-2xl font-bold">{stats?.occupancyRate || 0}%</p>
         </div>
       </div>
 
       {/* Pending Actions */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
         <div
-          className="bg-gradient-to-br from-yellow-600/20 to-amber-500/10 backdrop-blur-lg rounded-2xl p-6 border border-yellow-500/30 cursor-pointer hover:shadow-2xl hover:shadow-yellow-500/25 transition-all duration-300"
+          className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-all duration-300"
           onClick={() => navigate('/admin/applications')}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-yellow-200 text-sm mb-2">Pending Applications</p>
-              <p className="text-white text-2xl font-bold">{stats?.pendingApplications || 0}</p>
+              <p className="text-gray-600 text-sm mb-2">Pending Applications</p>
+              <p className="text-gray-800 text-2xl font-bold">{stats?.pendingApplications || 0}</p>
             </div>
-            <div className="p-3 bg-yellow-500/20 rounded-xl">
-              <FileText className="h-8 w-8 text-yellow-300" />
+            <div className="p-3 bg-yellow-50 rounded-xl">
+              <FileText className="h-8 w-8 text-yellow-600" />
             </div>
           </div>
         </div>
 
         <div
-          className="bg-gradient-to-br from-red-600/20 to-orange-500/10 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30 cursor-pointer hover:shadow-2xl hover:shadow-red-500/25 transition-all duration-300"
+          className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-all duration-300"
           onClick={() => navigate('/admin/complaints')}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-red-200 text-sm mb-2">Pending Complaints</p>
-              <p className="text-white text-2xl font-bold">{stats?.pendingComplaints || 0}</p>
+              <p className="text-gray-600 text-sm mb-2">Pending Complaints</p>
+              <p className="text-gray-800 text-2xl font-bold">{stats?.pendingComplaints || 0}</p>
             </div>
-            <div className="p-3 bg-red-500/20 rounded-xl">
-              <MessageSquare className="h-8 w-8 text-red-300" />
+            <div className="p-3 bg-red-50 rounded-xl">
+              <MessageSquare className="h-8 w-8 text-red-600" />
             </div>
           </div>
         </div>
 
         <div
-          className="bg-gradient-to-br from-orange-600/20 to-pink-500/10 backdrop-blur-lg rounded-2xl p-6 border border-orange-500/30 cursor-pointer hover:shadow-2xl hover:shadow-orange-500/25 transition-all duration-300"
+          className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm cursor-pointer hover:shadow-md transition-all duration-300"
           onClick={() => navigate('/admin/fees')}
         >
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-orange-200 text-sm mb-2">Pending Fees</p>
-              <p className="text-white text-2xl font-bold">{stats?.pendingFees || 0}</p>
+              <p className="text-gray-600 text-sm mb-2">Pending Fees</p>
+              <p className="text-gray-800 text-2xl font-bold">{stats?.pendingFees || 0}</p>
             </div>
-            <div className="p-3 bg-orange-500/20 rounded-xl">
-              <CreditCard className="h-8 w-8 text-orange-300" />
+            <div className="p-3 bg-orange-50 rounded-xl">
+              <CreditCard className="h-8 w-8 text-orange-600" />
             </div>
           </div>
         </div>
@@ -205,20 +205,20 @@ const AdminDashboard = () => {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Recent Applications */}
-        <div className="bg-gradient-to-br from-blue-600/10 to-indigo-600/10 backdrop-blur-lg rounded-2xl p-6 border border-blue-500/30">
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-500/20 rounded-xl">
-                <FileText className="h-6 w-6 text-blue-300" />
+              <div className="p-3 bg-blue-50 rounded-xl">
+                <FileText className="h-6 w-6 text-blue-600" />
               </div>
-              <h3 className="text-xl font-bold text-white">Recent Applications</h3>
+              <h3 className="text-xl font-bold text-gray-800">Recent Applications</h3>
             </div>
             <Button
               variant="ghost"
               size="sm"
               rightIcon={ArrowRight}
               onClick={() => navigate('/admin/applications')}
-              className="text-blue-300 hover:text-white hover:bg-white/10"
+              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
             >
               View All
             </Button>
@@ -229,26 +229,26 @@ const AdminDashboard = () => {
               recentApplications.map((app) => (
                 <div
                   key={app._id}
-                  className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer"
+                  className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:bg-gray-100 transition-all duration-200 cursor-pointer"
                   onClick={() => navigate(`/admin/applications/${app._id}`)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                        <Users className="h-5 w-5 text-blue-300" />
+                      <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center">
+                        <Users className="h-5 w-5 text-blue-600" />
                       </div>
                       <div>
-                        <p className="font-medium text-white">
+                        <p className="font-medium text-gray-800">
                           {app.student?.user?.name || 'Unknown'}
                         </p>
-                        <p className="text-sm text-blue-200">
+                        <p className="text-sm text-gray-600">
                           Room Application
                         </p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
                       {getStatusBadge(app.status)}
-                      <span className="text-xs text-blue-300">
+                      <span className="text-xs text-gray-500">
                         {new Date(app.createdAt).toLocaleDateString()}
                       </span>
                     </div>
@@ -256,26 +256,26 @@ const AdminDashboard = () => {
                 </div>
               ))
             ) : (
-              <p className="text-center text-blue-200 py-8">No recent applications</p>
+              <p className="text-center text-gray-500 py-8">No recent applications</p>
             )}
           </div>
         </div>
 
         {/* Recent Complaints */}
-        <div className="bg-gradient-to-br from-red-600/10 to-orange-600/10 backdrop-blur-lg rounded-2xl p-6 border border-red-500/30">
+        <div className="bg-white rounded-2xl p-6 border border-gray-200 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-red-500/20 rounded-xl">
-                <MessageSquare className="h-6 w-6 text-red-300" />
+              <div className="p-3 bg-red-50 rounded-xl">
+                <MessageSquare className="h-6 w-6 text-red-600" />
               </div>
-              <h3 className="text-xl font-bold text-white">Recent Complaints</h3>
+              <h3 className="text-xl font-bold text-gray-800">Recent Complaints</h3>
             </div>
             <Button
               variant="ghost"
               size="sm"
               rightIcon={ArrowRight}
               onClick={() => navigate('/admin/complaints')}
-              className="text-red-300 hover:text-white hover:bg-white/10"
+              className="text-red-600 hover:text-red-800 hover:bg-red-50"
             >
               View All
             </Button>
@@ -286,25 +286,25 @@ const AdminDashboard = () => {
               recentComplaints.map((complaint) => (
                 <div
                   key={complaint._id}
-                  className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20 hover:bg-white/20 transition-all duration-200 cursor-pointer"
+                  className="bg-gray-50 rounded-xl p-4 border border-gray-200 hover:bg-gray-100 transition-all duration-200 cursor-pointer"
                   onClick={() => navigate(`/admin/complaints/${complaint._id}`)}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        complaint.priority === 'urgent' ? 'bg-red-500/20' :
-                        complaint.priority === 'high' ? 'bg-orange-500/20' :
-                        'bg-blue-500/20'
+                        complaint.priority === 'urgent' ? 'bg-red-50' :
+                        complaint.priority === 'high' ? 'bg-orange-50' :
+                        'bg-blue-50'
                       }`}>
                         <AlertCircle className={`h-5 w-5 ${
-                          complaint.priority === 'urgent' ? 'text-red-300' :
-                          complaint.priority === 'high' ? 'text-orange-300' :
-                          'text-blue-300'
+                          complaint.priority === 'urgent' ? 'text-red-600' :
+                          complaint.priority === 'high' ? 'text-orange-600' :
+                          'text-blue-600'
                         }`} />
                       </div>
                       <div className="min-w-0">
-                        <p className="font-medium text-white truncate">{complaint.title}</p>
-                        <p className="text-sm text-red-200 capitalize">
+                        <p className="font-medium text-gray-800 truncate">{complaint.title}</p>
+                        <p className="text-sm text-gray-600 capitalize">
                           {complaint.category}
                         </p>
                       </div>
@@ -314,7 +314,7 @@ const AdminDashboard = () => {
                 </div>
               ))
             ) : (
-              <p className="text-center text-red-200 py-8">No recent complaints</p>
+              <p className="text-center text-gray-500 py-8">No recent complaints</p>
             )}
           </div>
         </div>

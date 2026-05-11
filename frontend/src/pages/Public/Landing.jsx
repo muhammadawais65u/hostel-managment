@@ -74,7 +74,7 @@ const Landing = () => {
           }} />
         </div>
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 lg:pt-32 lg:pb-28">
+        <div className="relative  mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-20 lg:pt-32 lg:pb-28">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
             <div className="space-y-8 animate-fade-in">
               <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full">
@@ -96,7 +96,7 @@ const Landing = () => {
                 <Link to="/register">
                   <Button
                     size="lg"
-                    className="bg-white text-primary-700 hover:bg-primary-50 shadow-lg"
+                    className="bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 shadow-sm"
                     rightIcon={ArrowRight}
                   >
                     Get Started
@@ -106,7 +106,7 @@ const Landing = () => {
                   <Button
                     variant="outline"
                     size="lg"
-                    className="border-white text-white hover:bg-white/10"
+                    className="border-primary-600 border-2 text-primary-600 hover:bg-primary-50"
                   >
                     Sign In
                   </Button>
@@ -138,7 +138,7 @@ const Landing = () => {
                       <Building2 className="h-6 w-6 text-primary-600" />
                     </div>
                     <div>
-                      <p className="font-semibold text-secondary-900">Boys Hostel A</p>
+                      <p className="font-semibold text-secondary-900">Boys Hostel </p>
                       <p className="text-sm text-secondary-500">2 rooms available</p>
                     </div>
                   </div>
@@ -188,7 +188,7 @@ const Landing = () => {
 
       {/* Stats Section */}
       <section className="py-12 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
               <div key={index} className="text-center">
@@ -202,7 +202,7 @@ const Landing = () => {
 
       {/* Features Section */}
       <section className="py-20 bg-secondary-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <h2 className="text-3xl font-bold text-secondary-900 mb-4">
               Everything You Need in One Place
@@ -237,7 +237,7 @@ const Landing = () => {
 
       {/* CTA Section */}
       <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-gradient-to-r from-primary-600 to-primary-700 rounded-2xl p-8 sm:p-12 lg:p-16 text-center text-white relative overflow-hidden">
             {/* Decorative circles */}
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />

@@ -36,10 +36,14 @@ const Navbar = () => {
           {/* Logo */}
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2">
-              <div className="bg-primary-600 p-2 rounded-lg">
-                <Building2 className="h-5 w-5 text-white" />
+              <div className="bg-gray-100  rounded-lg">
+                <img 
+                  src="/lgo.png" 
+                  alt="Hostel Management Logo" 
+                  className="h-12 w-12 object-contain"
+                />
               </div>
-              <span className="text-xl font-bold text-gradient">UHMS</span>
+              <span className="text-small font-bold text-gradient">University Hostel  Booking and Management System</span>
             </Link>
           </div>
 

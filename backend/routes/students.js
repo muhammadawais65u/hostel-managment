@@ -4,9 +4,9 @@ const { protect, authorize } = require('../middleware/auth');
 const { studentValidation } = require('../utils/validators');
 const { User, Student, Application, Complaint, Fee, Notification } = require('../models');
 
-// All routes are protected and student-only
+// All routes are protected and allow both students and admins
 router.use(protect);
-router.use(authorize('student'));
+router.use(authorize('student', 'admin'));
 
 // @route   GET /api/students/dashboard
 // @desc    Get student dashboard data
@@ -178,7 +178,6 @@ router.get('/complaints', async (req, res) => {
     const student = await Student.findOne({ user: req.user.id });
 
     const complaints = await Complaint.find({ student: student._id })
-      .populate('hostel', 'name code')
       .populate('room', 'roomNumber')
       .sort({ createdAt: -1 });
 

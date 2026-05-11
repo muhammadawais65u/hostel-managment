@@ -57,6 +57,7 @@ const ApplicationStatus = () => {
     const badges = {
       pending: { variant: 'warning', label: 'Pending', icon: Clock },
       approved: { variant: 'success', label: 'Approved', icon: CheckCircle },
+      assigned: { variant: 'info', label: 'Assigned', icon: CheckCircle },
       rejected: { variant: 'danger', label: 'Rejected', icon: XCircle },
       verified: { variant: 'info', label: 'Verified', icon: CheckCircle }
     };
@@ -67,6 +68,7 @@ const ApplicationStatus = () => {
     const colors = {
       pending: 'text-yellow-600 bg-yellow-50',
       approved: 'text-green-600 bg-green-50',
+      assigned: 'text-blue-600 bg-blue-50',
       rejected: 'text-red-600 bg-red-50',
       verified: 'text-blue-600 bg-blue-50'
     };
@@ -95,7 +97,7 @@ const ApplicationStatus = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -183,12 +185,12 @@ const ApplicationStatus = () => {
                             </div>
                           )}
                           
-                          {application.status === 'approved' && application.roomInfo?.roomNumber && (
+                          { (application.status === 'approved' || application.status === 'assigned') && application.roomInfo?.roomNumber && (
                             <div className="flex items-center gap-2">
-                              <CheckCircle className="h-4 w-4 text-green-600" />
+                              <CheckCircle className={`h-4 w-4 ${application.status === 'assigned' ? 'text-blue-600' : 'text-green-600'}`} />
                               <div>
-                                <p className="text-xs text-gray-500">Allocated Room</p>
-                                <p className="font-medium text-green-600">{application.roomInfo.roomNumber}</p>
+                                <p className="text-xs text-gray-500">{application.status === 'assigned' ? 'Assigned Room' : 'Allocated Room'}</p>
+                                <p className={`font-medium ${application.status === 'assigned' ? 'text-blue-600' : 'text-green-600'}`}>{application.roomInfo.roomNumber}</p>
                               </div>
                             </div>
                           )}
@@ -248,7 +250,7 @@ const ApplicationStatus = () => {
                             Apply Again
                           </Button>
                         )}
-                        {application.status === 'approved' && (
+                        {application.status === 'approved' && application.paymentStatus !== 'paid' && (
                           <Button
                             variant="success"
                             size="sm"
@@ -258,6 +260,12 @@ const ApplicationStatus = () => {
                             <CreditCard className="h-4 w-4" />
                             Make Payment
                           </Button>
+                        )}
+                        {application.status === 'assigned' && (
+                          <Badge variant="info" size="sm" className="py-2">
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Assigned
+                          </Badge>
                         )}
                       </div>
                     </div>

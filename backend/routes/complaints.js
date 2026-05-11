@@ -2,15 +2,63 @@ const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
 const { complaintValidation } = require('../utils/validators');
-const { Complaint, Student, Notification } = require('../models');
+const { Complaint, Student, Notification, User } = require('../models');
+const { sendComplaintEmail, sendComplaintAcknowledgmentEmail } = require('../utils/emailService');
 
-// All routes are protected
+// @route   POST /api/complaints/public
+// @desc    Submit complaint from public contact page
+// @access  Public
+router.post('/public', async (req, res) => {
+  try {
+    const { name, email, title, description, category, priority } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !title || !description) {
+      return res.status(400).json({
+        success: false,
+        message: 'Name, email, title, and description are required'
+      });
+    }
+
+    // Create complaint without student/user association (public submission)
+    const complaint = await Complaint.create({
+      name,
+      email,
+      title,
+      description,
+      category: category || 'General',
+      priority: priority || 'medium',
+      status: 'pending',
+      isPublic: true
+    });
+
+    // Send email to admin
+    await sendComplaintEmail(name, email, title, description, category, priority);
+
+    // Send acknowledgment email to the submitter
+    await sendComplaintAcknowledgmentEmail(email, name, title);
+
+    res.status(201).json({
+      success: true,
+      message: 'Complaint submitted successfully',
+      data: complaint
+    });
+  } catch (error) {
+    console.error('Error submitting public complaint:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// All routes below are protected
 router.use(protect);
 
 // @route   POST /api/complaints
 // @desc    Submit complaint
 // @access  Private (Student)
-router.post('/', authorize('student'), complaintValidation, async (req, res) => {
+router.post('/', authorize('student'), async (req, res) => {
   try {
     const student = await Student.findOne({ user: req.user.id });
 
@@ -21,33 +69,71 @@ router.post('/', authorize('student'), complaintValidation, async (req, res) => 
       });
     }
 
-    if (!student.hostel) {
-      return res.status(400).json({
-        success: false,
-        message: 'You must be allocated to a hostel to submit complaints'
-      });
-    }
-
-    const complaint = await Complaint.create({
+    // Create complaint with optional room info and target role
+    const complaintData = {
       student: student._id,
       user: req.user.id,
-      hostel: student.hostel,
-      room: student.room,
+      targetRole: req.body.targetRole || 'warden', // 'warden', 'admin', or 'both'
+      isCritical: req.body.isCritical || false,
       ...req.body
-    });
+    };
 
-    // Notify wardens
-    const { Hostel } = require('../models');
-    const hostel = await Hostel.findById(student.hostel).populate('warden');
+    // Only add room if it exists
+    if (student.room) {
+      complaintData.room = student.room;
+    }
 
-    if (hostel && hostel.warden) {
-      await Notification.create({
-        user: hostel.warden._id,
-        title: 'New Complaint',
-        message: `A new ${req.body.category} complaint has been submitted.`,
-        type: 'complaint',
-        relatedTo: { model: 'Complaint', id: complaint._id }
-      });
+    const complaint = await Complaint.create(complaintData);
+
+    // Send notifications based on target role
+    if (req.body.targetRole === 'admin') {
+      // Send to admin only
+      const adminUsers = await User.find({ role: 'admin' });
+      if (adminUsers && adminUsers.length > 0) {
+        await Notification.create({
+          user: adminUsers[0]._id,
+          title: 'New Complaint',
+          message: `A new ${req.body.category} complaint has been submitted by ${student.name || 'a student'}.`,
+          type: 'complaint',
+          relatedTo: { model: 'Complaint', id: complaint._id }
+        });
+      }
+    } else if (req.body.targetRole === 'warden') {
+      // Send to warden only
+      const wardenUsers = await User.find({ role: 'warden' });
+      if (wardenUsers && wardenUsers.length > 0) {
+        await Notification.create({
+          user: wardenUsers[0]._id,
+          title: 'New Complaint',
+          message: `A new ${req.body.category} complaint has been submitted by ${student.name || 'a student'}.`,
+          type: 'complaint',
+          relatedTo: { model: 'Complaint', id: complaint._id }
+        });
+      }
+    } else if (req.body.targetRole === 'both') {
+      // Send to both admin and warden
+      const adminUsers = await User.find({ role: 'admin' });
+      const wardenUsers = await User.find({ role: 'warden' });
+      
+      if (adminUsers && adminUsers.length > 0) {
+        await Notification.create({
+          user: adminUsers[0]._id,
+          title: 'New Complaint',
+          message: `A new ${req.body.category} complaint has been submitted by ${student.name || 'a student'}.`,
+          type: 'complaint',
+          relatedTo: { model: 'Complaint', id: complaint._id }
+        });
+      }
+      
+      if (wardenUsers && wardenUsers.length > 0) {
+        await Notification.create({
+          user: wardenUsers[0]._id,
+          title: 'New Complaint',
+          message: `A new ${req.body.category} complaint has been submitted by ${student.name || 'a student'}.`,
+          type: 'complaint',
+          relatedTo: { model: 'Complaint', id: complaint._id }
+        });
+      }
     }
 
     res.status(201).json({
@@ -67,7 +153,7 @@ router.post('/', authorize('student'), complaintValidation, async (req, res) => 
 // @access  Private
 router.get('/', async (req, res) => {
   try {
-    const { status, category, priority, hostel, page = 1, limit = 10 } = req.query;
+    const { status, category, priority, page = 1, limit = 10 } = req.query;
 
     let query = {};
 
@@ -75,17 +161,11 @@ router.get('/', async (req, res) => {
     if (req.user.role === 'student') {
       const student = await Student.findOne({ user: req.user.id });
       query.student = student._id;
-    } else if (req.user.role === 'warden') {
-      // Wardens see complaints for their assigned hostels
-      const { Hostel } = require('../models');
-      const hostels = await Hostel.find({ warden: req.user.id });
-      query.hostel = { $in: hostels.map(h => h._id) };
     }
 
     if (status) query.status = status;
     if (category) query.category = category;
     if (priority) query.priority = priority;
-    if (hostel) query.hostel = hostel;
 
     const complaints = await Complaint.find(query)
       .populate({
@@ -95,7 +175,6 @@ router.get('/', async (req, res) => {
           select: 'name email phone'
         }
       })
-      .populate('hostel', 'name code')
       .populate('room', 'roomNumber')
       .populate('assignedTo', 'name')
       .populate('resolvedBy', 'name')
@@ -133,7 +212,6 @@ router.get('/:id', async (req, res) => {
           select: 'name email phone'
         }
       })
-      .populate('hostel', 'name code')
       .populate('room', 'roomNumber')
       .populate({
         path: 'comments.user',
@@ -257,7 +335,8 @@ router.post('/:id/comments', async (req, res) => {
 
     complaint.comments.push({
       user: req.user.id,
-      message
+      message,
+      replyTo: req.body.replyTo || 'student' // 'student', 'admin', or 'warden'
     });
 
     await complaint.save();

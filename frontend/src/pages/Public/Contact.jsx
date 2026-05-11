@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Building2, Mail, Phone, MapPin, Send, Clock, MessageSquare } from 'lucide-react';
+import { complaintAPI } from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 const Contact = () => {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -18,21 +21,40 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate form submission
-    setTimeout(() => {
-      alert('Thank you for your message. We will get back to you soon!');
+
+    try {
+      // If subject is complaint, submit as a complaint via public route
+      if (formData.subject === 'complaint') {
+        await complaintAPI.createPublic({
+          name: formData.name,
+          email: formData.email,
+          title: formData.subject,
+          description: formData.message,
+          category: 'other',
+          priority: 'medium'
+        });
+        alert('Complaint submitted successfully! You will receive an email confirmation and our team will respond within 2-3 business days.');
+      } else {
+        // For other subjects, just simulate submission
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        alert('Thank you for your message. We will get back to you soon!');
+      }
+
       setFormData({
         name: '',
         email: '',
         subject: '',
         message: ''
       });
+    } catch (err) {
+      console.error('Error submitting form:', err);
+      alert('Failed to submit. Please try again.');
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   const contactInfo = [
@@ -40,7 +62,7 @@ const Contact = () => {
       icon: Building2,
       title: 'Main Office',
       details: [
-        'University Hostel Management System',
+        'University Hostel Booking and Management System',
         'University Campus, Main Road',
         'City, State 123456'
       ]
@@ -58,9 +80,9 @@ const Contact = () => {
       icon: Mail,
       title: 'Email Addresses',
       details: [
-        'info@uhms.edu (General Inquiries)',
-        'support@uhms.edu (Technical Support)',
-        'warden@uhms.edu (Warden Office)'
+        'info@UHBMS.edu (General Inquiries)',
+        'support@UHBMS.edu (Technical Support)',
+        'warden@UHBMS.edu (Warden Office)'
       ]
     },
     {
@@ -101,7 +123,7 @@ const Contact = () => {
     <div className="min-h-screen bg-secondary-50">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
             <p className="text-xl text-primary-100 max-w-3xl mx-auto">
@@ -112,22 +134,8 @@ const Contact = () => {
       </div>
 
       {/* Contact Information */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
-          {contactInfo.map((info, index) => (
-            <div key={index} className="card p-6 text-center">
-              <div className="bg-primary-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-                <info.icon className="h-8 w-8 text-primary-600" />
-              </div>
-              <h3 className="text-xl font-semibold text-secondary-900 mb-3">{info.title}</h3>
-              <div className="text-secondary-600 space-y-1">
-                {info.details.map((detail, detailIndex) => (
-                  <p key={detailIndex} className="text-sm">{detail}</p>
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-16">
+       
 
         {/* Contact Form and Map */}
         <div className="grid lg:grid-cols-2 gap-12">
@@ -236,7 +244,7 @@ const Contact = () => {
                 <Phone className="h-5 w-5 text-primary-600 mt-1 flex-shrink-0" />
                 <div>
                   <h4 className="font-semibold text-secondary-900">Emergency Contact</h4>
-                  <p className="text-secondary-600">+91 987 654 3210 (24/7 Available)</p>
+                  <p className="text-secondary-600">+92 987 654 3210 (24/7 Available)</p>
                 </div>
               </div>
             </div>
@@ -246,7 +254,7 @@ const Contact = () => {
 
       {/* FAQ Section */}
       <div className="bg-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-secondary-900 mb-4">Frequently Asked Questions</h2>
             <p className="text-xl text-secondary-600">

@@ -29,57 +29,47 @@ const AdminLayout = () => {
     { icon: Home, label: 'Dashboard', path: '/admin/dashboard', active: location.pathname === '/admin/dashboard' },
     { icon: Users, label: 'User Management', path: '/admin/users' },
     { icon: DoorOpen, label: 'Room Management', path: '/admin/rooms' },
+    { icon: Building2, label: 'Occupied Rooms', path: '/admin/occupied-rooms' },
     { icon: FileText, label: 'Applications', path: '/admin/applications' },
     { icon: CreditCard, label: 'Payments', path: '/admin/payments' },
     { icon: MessageSquare, label: 'Complaints', path: '/admin/complaints' },
-    { icon: CreditCard, label: 'Fee Management', path: '/admin/fees' },
-    { icon: BarChart3, label: 'Reports', path: '/admin/reports' },
-    { icon: Calendar, label: 'Attendance', path: '/admin/attendance' },
-    { icon: Settings, label: 'Settings', path: '/admin/settings' },
-    { icon: HelpCircle, label: 'Help & Support', path: '/admin/help' },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 overflow-x-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse"></div>
-      </div>
+    <div className="min-h-screen bg-white overflow-x-hidden">
 
       <div className="flex relative z-10 layout-container">
         {/* Sidebar */}
-        <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-gradient-to-b from-slate-900/90 to-blue-900/90 backdrop-blur-lg border-r border-blue-500/30 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
+        <div className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 shadow-lg transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
           <div className="flex flex-col h-full">
             {/* Sidebar Header */}
-            <div className="flex items-center justify-between p-6 border-b border-blue-500/30">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
               <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg">
+                <div className="bg-blue-600 p-2 rounded-xl shadow-lg">
                   <Shield className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <h1 className="text-white font-bold text-lg">UHMS</h1>
-                  <p className="text-blue-200 text-xs">Admin Portal</p>
+                  <h1 className="text-gray-800 font-bold text-lg">UHBMS</h1>
+                  <p className="text-gray-600 text-xs">Admin Portal</p>
                 </div>
               </div>
               <button
                 onClick={() => setSidebarOpen(false)}
-                className="lg:hidden text-white hover:text-blue-200 transition-colors"
+                className="lg:hidden text-gray-600 hover:text-gray-800 transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* User Profile */}
-            <div className="p-6 border-b border-blue-500/30">
+            <div className="p-6 border-b border-gray-200">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
                   <User className="h-6 w-6 text-white" />
                 </div>
                 <div>
-                  <p className="text-white font-semibold">Administrator</p>
-                  <p className="text-blue-200 text-sm">System Admin</p>
+                  <p className="text-gray-800 font-semibold">Administrator</p>
+                  <p className="text-gray-600 text-sm">System Admin</p>
                 </div>
               </div>
             </div>
@@ -97,8 +87,8 @@ const AdminLayout = () => {
                     }}
                     className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${
                       item.active
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                        : 'text-blue-200 hover:bg-white/10 hover:text-white'
+                        ? 'bg-blue-600 text-white shadow-lg'
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
                     }`}
                   >
                     <Icon className="h-5 w-5" />
@@ -110,8 +100,8 @@ const AdminLayout = () => {
             </nav>
 
             {/* Logout Button */}
-            <div className="p-4 border-t border-blue-500/30">
-              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-400 hover:bg-red-500/20 hover:text-red-300 transition-all duration-200">
+            <div className="p-4 border-t border-gray-200">
+              <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 hover:text-red-700 transition-all duration-200">
                 <LogOut className="h-5 w-5" />
                 <span className="font-medium">Logout</span>
               </button>
@@ -130,27 +120,27 @@ const AdminLayout = () => {
         {/* Main Content */}
         <div className="flex-1 lg:ml-0">
           {/* Top Header */}
-          <header className="bg-gradient-to-r from-slate-900/80 to-blue-900/80 backdrop-blur-lg border-b border-blue-500/30">
+          <header className="bg-white border-b border-gray-200 shadow-sm">
             <div className="flex items-center justify-between px-6 py-4">
               <button
                 onClick={() => setSidebarOpen(true)}
-                className="lg:hidden text-white hover:text-blue-200 transition-colors"
+                className="lg:hidden text-gray-600 hover:text-gray-800 transition-colors"
               >
                 <Menu className="h-6 w-6" />
               </button>
               
               <div className="flex items-center gap-4">
-                <button className="relative p-2 text-white hover:text-blue-200 transition-colors">
+                <button className="relative p-2 text-gray-600 hover:text-gray-800 transition-colors">
                   <MessageSquare className="h-5 w-5" />
                   <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
                 </button>
                 <div className="hidden sm:flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full flex items-center justify-center">
+                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                     <User className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <p className="text-white text-sm font-medium">Administrator</p>
-                    <p className="text-blue-200 text-xs">System Admin</p>
+                    <p className="text-gray-800 text-sm font-medium">Administrator</p>
+                    <p className="text-gray-600 text-xs">System Admin</p>
                   </div>
                 </div>
               </div>

@@ -43,10 +43,10 @@ const Footer = () => {
               <div className="bg-primary-600 p-2 rounded-lg">
                 <Building2 className="h-5 w-5 text-white" />
               </div>
-              <span className="text-xl font-bold">UHMS</span>
+              <span className="text-xl font-bold">UHBMS</span>
             </Link>
             <p className="text-secondary-400 text-sm mb-4">
-              University Hostel Management System - Your complete solution for modern hostel booking and management.
+              University Hostel Booking and Management System - Your complete solution for modern hostel booking and management.
             </p>
             <div className="space-y-2">
               <a href="mailto:contact@university.edu" className="flex items-center gap-2 text-secondary-400 hover:text-white text-sm transition-colors">
@@ -120,7 +120,7 @@ const Footer = () => {
         <div className="mt-12 pt-8 border-t border-secondary-800">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-secondary-400 text-sm">
-              {currentYear} University Hostel Management System. All rights reserved.
+              {currentYear} University Hostel Booking and Management System. All rights reserved.
             </p>
             <div className="flex items-center gap-4">
               {socialLinks.map((social) => (

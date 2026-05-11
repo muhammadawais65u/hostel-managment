@@ -17,7 +17,7 @@ import {
   IndianRupee,
   DoorOpen
 } from 'lucide-react';
-import { roomAPI } from '../../services/api';
+import { roomAPI, adminAPI } from '../../services/api';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
 import Badge from '../../components/ui/Badge';
@@ -27,7 +27,9 @@ import Alert from '../../components/ui/Alert';
 const AdminRooms = () => {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [fixingLoading, setFixingLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -78,8 +80,12 @@ const AdminRooms = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const roomsRes = await roomAPI.getAll();
+      const [roomsRes, paymentsRes] = await Promise.all([
+        roomAPI.getAll(),
+        adminAPI.getPayments()
+      ]);
       setRooms(roomsRes.data.data || []);
+      setPayments(paymentsRes.data.data || []);
       setError('');
     } catch (err) {
       setError('Failed to load data. Please try again.');
@@ -276,6 +282,23 @@ const AdminRooms = () => {
     return matchesSearch;
   });
 
+  // Calculate actual occupancy based on payment data
+  const getRoomOccupancy = (room) => {
+    // Check if any payments have roomNumber populated
+    const paymentsWithRoomNumber = payments.filter(p => p.roomNumber);
+    if (paymentsWithRoomNumber.length === 0) {
+      // No payment data has roomNumber, fall back to room.occupiedSeats
+      return room.occupiedSeats || 0;
+    }
+    const paymentsForRoom = payments.filter(p => p.roomNumber === room.roomNumber);
+    return paymentsForRoom.length;
+  };
+
+  const isRoomOccupied = (room) => {
+    const actualOccupancy = getRoomOccupancy(room);
+    return actualOccupancy >= room.capacity;
+  };
+
   const getRoomTypeBadge = (type) => {
     const colors = {
       single: 'bg-blue-100 text-blue-800',
@@ -299,7 +322,7 @@ const AdminRooms = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className=" mx-auto space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -321,7 +344,7 @@ const AdminRooms = () => {
               setShowAddModal(true);
             }}
             leftIcon={Plus}
-            className="bg-white text-blue-600 hover:bg-blue-50 shadow-lg"
+            className="bg-blue-900 text-blue-600 hover:bg-blue-50 shadow-lg"
           >
             Add New Room
           </Button>
@@ -361,7 +384,7 @@ const AdminRooms = () => {
             <div>
               <p className="text-sm text-gray-600">Available</p>
               <p className="text-2xl font-bold text-gray-900">
-                {rooms.filter(r => (r.available || r.vacant || 0) > 0).length}
+                {rooms.filter(r => !isRoomOccupied(r)).length}
               </p>
             </div>
           </div>
@@ -374,7 +397,7 @@ const AdminRooms = () => {
             <div>
               <p className="text-sm text-gray-600">Occupied</p>
               <p className="text-2xl font-bold text-gray-900">
-                {rooms.filter(r => (r.occupied || 0) > 0).length}
+                {rooms.filter(r => isRoomOccupied(r)).length}
               </p>
             </div>
           </div>
@@ -439,8 +462,8 @@ const AdminRooms = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`font-medium ${(room.available || room.vacant || 0) > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                        {room.available || room.vacant || 0}
+                      <span className={`font-medium ${!isRoomOccupied(room) ? 'text-green-600' : 'text-red-600'}`}>
+                        {room.capacity - getRoomOccupancy(room.roomNumber)}
                       </span>
                       <span className="text-gray-400 text-sm"> / {room.capacity || 1}</span>
                     </td>
@@ -451,9 +474,11 @@ const AdminRooms = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <Badge variant={room.isActive !== false ? 'success' : 'secondary'}>
-                        {room.isActive !== false ? 'Active' : 'Inactive'}
-                      </Badge>
+                      { isRoomOccupied(room) ? (
+                        <Badge variant="danger">Occupied</Badge>
+                      ) : (
+                        <Badge variant="success">Available</Badge>
+                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center gap-2">

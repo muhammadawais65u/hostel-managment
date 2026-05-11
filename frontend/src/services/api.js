@@ -77,6 +77,7 @@ export const studentAPI = {
   getApplications: () => api.get('/applications/my'),
   submitApplication: (data) => api.post('/applications', data),
   getComplaints: () => api.get('/students/complaints'),
+  createComplaint: (data) => api.post('/complaints', data),
   getFees: () => api.get('/students/fees'),
   getPaymentHistory: () => api.get('/payments/history?t=' + Date.now()),
   getRescheduledPayments: () => api.get('/payments/rescheduled?t=' + Date.now()),
@@ -90,24 +91,31 @@ export const studentAPI = {
 export const adminAPI = {
   getDashboard: () => api.get('/admin/dashboard'),
   getUsers: (params) => api.get('/admin/users', { params }),
+  createUser: (data) => api.post('/admin/users', data),
+  updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
+  verifyEmail: (id) => api.put(`/admin/users/${id}/verify-email`),
   toggleUserStatus: (id) => api.put(`/admin/users/${id}/status`),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
   getAnalytics: () => api.get('/admin/analytics'),
   getPayments: () => api.get('/payments/admin/all'),
   reschedulePayment: (data) => api.post('/payments/reschedule', data),
   getRescheduledPayments: () => api.get('/payments/admin/rescheduled?t=' + Date.now()),
+  assignRoom: (transactionId, roomData) => api.put('/payments/admin/assign-room', { transactionId, ...roomData }),
+  fixRoomAssignments: () => api.post('/payments/admin/fix-room-assignments'),
+  getNotifications: () => api.get('/admin/notifications'),
 };
 
 // Warden API
 export const wardenAPI = {
   getDashboard: () => api.get('/warden/dashboard'),
-  getHostels: () => api.get('/warden/hostels'),
-  getRooms: (params) => api.get('/warden/rooms', { params }),
   getStudents: (params) => api.get('/warden/students', { params }),
   getComplaints: (params) => api.get('/warden/complaints', { params }),
   assignComplaint: (id) => api.put(`/warden/complaints/${id}/assign`),
   resolveComplaint: (id, data) => api.put(`/warden/complaints/${id}/resolve`, data),
-  allocateRoom: (roomId, data) => api.put(`/warden/rooms/${roomId}/allocate`, data),
+  reassignComplaint: (id, data) => api.put(`/warden/complaints/${id}/reassign`, data),
+  reportIssue: (data) => api.post('/warden/report-issue', data),
+  getNotifications: () => api.get('/warden/notifications'),
+  getOccupiedRooms: () => api.get('/warden/occupied-rooms')
 };
 
 // Hostel API
@@ -127,8 +135,9 @@ export const roomAPI = {
   create: (data) => api.post('/rooms', data),
   update: (id, data) => api.put(`/rooms/${id}`, data),
   delete: (id) => api.delete(`/rooms/${id}`),
-  allocate: (id, studentId) => api.put(`/rooms/${id}/allocate`, { studentId }),
-  vacate: (id, studentId) => api.put(`/rooms/${id}/vacate`, { studentId }),
+  allocate: (id, data) => api.put(`/rooms/${id}/allocate`, data),
+  vacate: (id, data) => api.put(`/rooms/${id}/vacate`, data),
+  getOccupancy: () => api.get('/rooms/occupancy'),
 };
 
 // Application API
@@ -146,6 +155,7 @@ export const complaintAPI = {
   getAll: (params) => api.get('/complaints', { params }),
   getById: (id) => api.get(`/complaints/${id}`),
   create: (data) => api.post('/complaints', data),
+  createPublic: (data) => api.post('/complaints/public', data),
   updateStatus: (id, data) => api.put(`/complaints/${id}/status`, data),
   addComment: (id, data) => api.post(`/complaints/${id}/comments`, data),
   delete: (id) => api.delete(`/complaints/${id}`),

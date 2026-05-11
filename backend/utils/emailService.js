@@ -19,18 +19,18 @@ const sendOTPEmail = async (email, otp, name) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Email Verification - University Hostel Management System',
+      subject: 'Email Verification - University Hostel Booking and Management System',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 24px;">University Hostel Management System</h1>
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Booking and Management System</h1>
             <p style="margin: 10px 0 0 0; opacity: 0.9;">Email Verification</p>
           </div>
           
           <div style="background: #f9f9f9; padding: 30px; border-radius: 10px; margin: 20px 0;">
             <h2 style="color: #333; margin: 0 0 20px 0;">Hello ${name},</h2>
             <p style="color: #666; line-height: 1.6; margin: 0 0 20px 0;">
-              Thank you for registering with the University Hostel Management System. To complete your registration, 
+              Thank you for registering with the University Hostel Booking and Management System. To complete your registration, 
               please verify your email address using the 6-digit verification code below:
             </p>
             
@@ -47,7 +47,7 @@ const sendOTPEmail = async (email, otp, name) => {
           </div>
           
           <div style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
-            <p>&copy; 2024 University Hostel Management System. All rights reserved.</p>
+            <p>&copy; 2024 University Hostel Booking and Management System. All rights reserved.</p>
           </div>
         </div>
       `
@@ -70,11 +70,11 @@ const sendWelcomeEmail = async (email, name) => {
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Welcome to University Hostel Management System',
+      subject: 'Welcome to University Hostel Booking and Management System',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 24px;">University Hostel Management System</h1>
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Booking and Management System</h1>
             <p style="margin: 10px 0 0 0; opacity: 0.9;">Welcome Aboard!</p>
           </div>
           
@@ -82,7 +82,7 @@ const sendWelcomeEmail = async (email, name) => {
             <h2 style="color: #333; margin: 0 0 20px 0;">Welcome ${name}!</h2>
             <p style="color: #666; line-height: 1.6; margin: 0 0 20px 0;">
               Your email has been successfully verified and your account is now active. 
-              You can now log in to the University Hostel Management System and start using our services.
+              You can now log in to the University Hostel Booking and Management System and start using our services.
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
@@ -98,7 +98,7 @@ const sendWelcomeEmail = async (email, name) => {
           </div>
           
           <div style="text-align: center; color: #999; font-size: 12px; margin-top: 20px;">
-            <p>&copy; 2024 University Hostel Management System. All rights reserved.</p>
+            <p>&copy; 2024 University Hostel Booking and Management System. All rights reserved.</p>
           </div>
         </div>
       `
@@ -121,11 +121,11 @@ const sendPaymentConfirmationEmail = async (email, name, amount, roomNumber, tra
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Payment Confirmation - University Hostel Management System',
+      subject: 'Payment Confirmation - University Hostel Booking and Management System',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 24px;">University Hostel Management System</h1>
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Booking and Management System</h1>
             <p style="margin: 10px 0 0 0; opacity: 0.9;">Payment Confirmation</p>
           </div>
           
@@ -169,7 +169,7 @@ const sendPaymentConfirmationEmail = async (email, name, amount, roomNumber, tra
               This is an automated email. Please do not reply to this message.
             </p>
             <p style="color: #999; font-size: 12px; margin: 10px 0 0 0;">
-              © ${new Date().getFullYear()} University Hostel Management System
+              © ${new Date().getFullYear()} University Hostel Booking and Management System
             </p>
           </div>
         </div>
@@ -195,11 +195,11 @@ const sendApplicationStatusEmail = async (email, name, status, adminRemarks = ''
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: `Application ${statusText} - University Hostel Management System`,
+      subject: `Application ${statusText} - University Hostel Booking and Management System`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 24px;">University Hostel Management System</h1>
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Booking and Management System</h1>
             <p style="margin: 10px 0 0 0; opacity: 0.9;">Application Status Update</p>
           </div>
           
@@ -243,6 +243,148 @@ const sendApplicationStatusEmail = async (email, name, status, adminRemarks = ''
   }
 };
 
+// Send complaint email to admin
+const sendComplaintEmail = async (name, email, title, description, category, priority) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+      subject: `New Complaint: ${title} - University Hostel Booking and Management System`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Booking and Management System</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">New Complaint Received</p>
+          </div>
+
+          <div style="background: #f9f9f9; padding: 30px; border-radius: 10px; margin: 20px 0;">
+            <h2 style="color: #333; margin: 0 0 20px 0;">New Complaint Details</h2>
+
+            <div style="background: #fff; border: 2px solid #dc3545; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">From:</strong>
+                <span style="color: #333; margin-left: 10px;">${name} (${email})</span>
+              </div>
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Subject:</strong>
+                <span style="color: #333; margin-left: 10px;">${title}</span>
+              </div>
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Category:</strong>
+                <span style="color: #333; margin-left: 10px;">${category}</span>
+              </div>
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Priority:</strong>
+                <span style="color: ${priority === 'high' || priority === 'urgent' ? '#dc3545' : '#333'}; font-weight: bold; margin-left: 10px;">${priority}</span>
+              </div>
+              <div>
+                <strong style="color: #666;">Description:</strong>
+                <p style="color: #666; margin: 10px 0 0 0; line-height: 1.6;">${description}</p>
+              </div>
+            </div>
+
+            <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #856404; margin: 0; font-size: 14px;">
+                <strong>Action Required:</strong> Please review this complaint and take appropriate action. You can reply to the complaint from the admin dashboard.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/admin/complaints"
+                 style="background: #dc3545; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                View Complaint in Admin Dashboard
+              </a>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="color: #999; font-size: 12px; margin: 0;">
+              This is an automated email. Please do not reply to this message.
+            </p>
+            <p style="color: #999; font-size: 12px; margin: 10px 0 0 0;">
+              © ${new Date().getFullYear()} University Hostel Booking and Management System
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Complaint email sent to admin successfully');
+    return true;
+  } catch (error) {
+    console.error('Error sending complaint email to admin:', error);
+    return false;
+  }
+};
+
+// Send complaint acknowledgment email to submitter
+const sendComplaintAcknowledgmentEmail = async (email, name, title) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Complaint Received - University Hostel Booking and Management System',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Booking and Management System</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">Complaint Received</p>
+          </div>
+
+          <div style="background: #f9f9f9; padding: 30px; border-radius: 10px; margin: 20px 0;">
+            <h2 style="color: #333; margin: 0 0 20px 0;">Hello ${name},</h2>
+            <p style="color: #666; line-height: 1.6; margin: 0 0 20px 0;">
+              Thank you for contacting us. We have received your complaint and it has been forwarded to our administration team for review.
+            </p>
+
+            <div style="background: #fff; border: 2px solid #667eea; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Complaint Subject:</strong>
+                <span style="color: #333; margin-left: 10px;">${title}</span>
+              </div>
+              <div>
+                <strong style="color: #666;">Reference Number:</strong>
+                <span style="color: #667eea; font-weight: bold; margin-left: 10px;">${Date.now()}</span>
+              </div>
+            </div>
+
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #155724; margin: 0; font-size: 14px;">
+                <strong>What happens next:</strong> Our team will review your complaint and respond within 2-3 business days. You will receive an email notification when we respond to your complaint.
+              </p>
+            </div>
+
+            <p style="color: #999; font-size: 12px; margin: 20px 0 0 0;">
+              If you need immediate assistance, please contact our office at the phone number provided on our website.
+            </p>
+          </div>
+
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="color: #999; font-size: 12px; margin: 0;">
+              This is an automated email. Please do not reply to this message.
+            </p>
+            <p style="color: #999; font-size: 12px; margin: 10px 0 0 0;">
+              © ${new Date().getFullYear()} University Hostel Booking and Management System
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log('Complaint acknowledgment email sent successfully');
+    return true;
+  } catch (error) {
+    console.error('Error sending complaint acknowledgment email:', error);
+    return false;
+  }
+};
+
 // Send payment reschedule email
 const sendPaymentRescheduleEmail = async (email, name, nextPaymentDate, paymentFrequency, amount, reason) => {
   try {
@@ -251,11 +393,11 @@ const sendPaymentRescheduleEmail = async (email, name, nextPaymentDate, paymentF
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
-      subject: 'Payment Rescheduled - University Hostel Management System',
+      subject: 'Payment Rescheduled - University Hostel Booking and Management System',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <div style="background: linear-gradient(135deg, #ffc107 0%, #ff9800 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
-            <h1 style="margin: 0; font-size: 24px;">University Hostel Management System</h1>
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Booking and Management System</h1>
             <p style="margin: 10px 0 0 0; opacity: 0.9;">Payment Rescheduled</p>
           </div>
           
@@ -303,7 +445,7 @@ const sendPaymentRescheduleEmail = async (email, name, nextPaymentDate, paymentF
               This is an automated email. Please do not reply to this message.
             </p>
             <p style="color: #999; font-size: 12px; margin: 10px 0 0 0;">
-              © ${new Date().getFullYear()} University Hostel Management System
+              © ${new Date().getFullYear()} University Hostel Booking and Management System
             </p>
           </div>
         </div>
@@ -324,5 +466,7 @@ module.exports = {
   sendWelcomeEmail,
   sendApplicationStatusEmail,
   sendPaymentConfirmationEmail,
-  sendPaymentRescheduleEmail
+  sendPaymentRescheduleEmail,
+  sendComplaintEmail,
+  sendComplaintAcknowledgmentEmail
 };

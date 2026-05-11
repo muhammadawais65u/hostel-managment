@@ -164,7 +164,7 @@ const StudentDashboard = () => {
               </div>
 
               {/* Stats Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
                   <div className="flex items-center justify-between mb-4">
                     <div className="p-3 bg-blue-50 rounded-xl">
@@ -183,26 +183,6 @@ const StudentDashboard = () => {
                   </div>
                   <p className="text-gray-600 text-sm mb-2">Complaints</p>
                   <p className="text-gray-800 text-2xl font-bold">{stats?.complaintCount || 0}</p>
-                </div>
-
-                <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-blue-50 rounded-xl">
-                      <CreditCard className="h-6 w-6 text-blue-600" />
-                    </div>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-2">Fee Status</p>
-                  <div className="text-gray-800 font-semibold">{getStatusBadge(student?.feeStatus)}</div>
-                </div>
-
-                <div className="bg-white rounded-2xl p-6 border border-blue-200 shadow-sm hover:shadow-md transition-all duration-300">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="p-3 bg-purple-50 rounded-xl">
-                      <Bed className="h-6 w-6 text-purple-600" />
-                    </div>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-2">Room</p>
-                  <p className="text-gray-800 text-2xl font-bold">{student?.roomNumber || 'Not Assigned'}</p>
                 </div>
               </div>
 

@@ -4,22 +4,29 @@ const complaintSchema = new mongoose.Schema({
   student: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
-    required: true
+    required: false
   },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: false
   },
-  hostel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Hostel',
-    required: true
+  name: {
+    type: String,
+    required: false
+  },
+  email: {
+    type: String,
+    required: false
   },
   room: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Room',
     required: false
+  },
+  isPublic: {
+    type: Boolean,
+    default: false
   },
   title: {
     type: String,
@@ -85,11 +92,45 @@ const complaintSchema = new mongoose.Schema({
       required: true,
       trim: true
     },
+    replyTo: {
+      type: String,
+      enum: ['student', 'admin', 'warden'],
+      default: 'student'
+    },
     createdAt: {
       type: Date,
       default: Date.now
     }
   }],
+  // Complaint targeting - who should handle this complaint
+  targetRole: {
+    type: String,
+    enum: ['warden', 'admin', 'both'],
+    default: 'warden'
+  },
+  // Reassignment tracking
+  reassignedTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  reassignedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
+  reassignedAt: {
+    type: Date,
+    default: null
+  },
+  reassignmentReason: {
+    type: String,
+    trim: true
+  },
+  isCritical: {
+    type: Boolean,
+    default: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -108,7 +149,6 @@ complaintSchema.pre('save', function(next) {
 
 // Index for faster queries
 complaintSchema.index({ student: 1, status: 1 });
-complaintSchema.index({ hostel: 1, status: 1 });
 complaintSchema.index({ category: 1, priority: 1 });
 complaintSchema.index({ createdAt: -1 });
 

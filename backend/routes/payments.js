@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect, authorize } = require('../middleware/auth');
-const { User, Student, Application, Notification } = require('../models');
+const { User, Student, Application, Notification, Room } = require('../models');
 const { sendPaymentConfirmationEmail, sendPaymentRescheduleEmail } = require('../utils/emailService');
 
 // All routes are protected
@@ -45,11 +45,56 @@ router.post('/process', authorize('student'), async (req, res) => {
       });
     }
 
+    // Find or allocate a room
+    let room = null;
+    if (application.roomInfo?.roomNumber) {
+      // Use the room from application if already assigned
+      room = await Room.findOne({ roomNumber: application.roomInfo.roomNumber });
+    } else {
+      // Automatically allocate an available room based on student's preference
+      const roomType = application.roomType === 'any' ? 'single' : application.roomType;
+      room = await Room.findOne({
+        type: roomType,
+        $expr: { $lt: ['$occupiedSeats', '$capacity'] }
+      }).sort({ floor: 1, roomNumber: 1 });
+    }
+
+    if (!room) {
+      return res.status(400).json({
+        success: false,
+        message: 'No available rooms found. Please contact admin.'
+      });
+    }
+
+    if (room.occupiedSeats >= room.capacity) {
+      return res.status(400).json({
+        success: false,
+        message: 'Room is already full'
+      });
+    }
+
+    // Add student to room occupants if not already there
+    if (!room.occupants.includes(student._id)) {
+      room.occupants.push(student._id);
+      room.occupiedSeats = room.occupants.length;
+      await room.save();
+    }
+
+    // Update application with room info
+    application.roomInfo = {
+      roomNumber: room.roomNumber,
+      roomType: room.type,
+      floor: room.floor.toString(),
+      capacity: room.capacity.toString(),
+      price: room.price?.toString() || room.monthlyRent?.toString() || '0'
+    };
+
     // Process payment (simulate payment processing)
     const transactionId = 'TXN' + Date.now();
     
     // Update application with payment details
     application.paymentStatus = 'paid';
+    application.status = 'approved'; // Update status to 'approved' after payment
     application.paymentDetails = {
       amount,
       transactionId,
@@ -63,8 +108,12 @@ router.post('/process', authorize('student'), async (req, res) => {
     };
     await application.save();
 
-    // Update student payment status
+    // Update student payment status and room
     student.paymentStatus = 'paid';
+    student.applicationStatus = 'approved'; // Update student application status to 'approved'
+    if (room) {
+      student.room = room._id;
+    }
     await student.save();
 
     // Create notification for student
@@ -337,6 +386,159 @@ router.get('/rescheduled', authorize('student'), async (req, res) => {
     });
   } catch (error) {
     console.error('Rescheduled payments error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// @route   POST /api/payments/admin/fix-room-assignments
+// @desc    Fix existing paid applications without room assignments
+// @access  Private (Admin)
+router.post('/admin/fix-room-assignments', authorize('admin'), async (req, res) => {
+  try {
+    // Find all paid applications that don't have roomInfo populated
+    const applications = await Application.find({
+      paymentStatus: 'paid',
+      $or: [
+        { roomInfo: { $exists: false } },
+        { 'roomInfo.roomNumber': { $exists: false } },
+        { 'roomInfo.roomNumber': '' }
+      ]
+    }).populate('student');
+
+    console.log(`Found ${applications.length} paid applications without room assignments`);
+
+    let fixedCount = 0;
+    let failedCount = 0;
+
+    for (const application of applications) {
+      try {
+        // Find an available room based on student's preference
+        const roomType = application.roomType === 'any' ? 'single' : application.roomType;
+        const room = await Room.findOne({
+          type: roomType,
+          $expr: { $lt: ['$occupiedSeats', '$capacity'] }
+        }).sort({ floor: 1, roomNumber: 1 });
+
+        if (!room) {
+          console.log(`No available room found for application ${application._id}`);
+          failedCount++;
+          continue;
+        }
+
+        // Add student to room occupants if not already there
+        if (!room.occupants.includes(application.student._id)) {
+          room.occupants.push(application.student._id);
+          room.occupiedSeats = room.occupants.length;
+          await room.save();
+        }
+
+        // Update application with room info
+        application.roomInfo = {
+          roomNumber: room.roomNumber,
+          roomType: room.type,
+          floor: room.floor.toString(),
+          capacity: room.capacity.toString(),
+          price: room.price?.toString() || room.monthlyRent?.toString() || '0'
+        };
+        await application.save();
+
+        // Update student room
+        application.student.room = room._id;
+        await application.student.save();
+
+        fixedCount++;
+        console.log(`Fixed room assignment for application ${application._id} - Room ${room.roomNumber}`);
+      } catch (err) {
+        console.error(`Failed to fix application ${application._id}:`, err);
+        failedCount++;
+      }
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Fixed ${fixedCount} room assignments. Failed: ${failedCount}`,
+      data: {
+        total: applications.length,
+        fixed: fixedCount,
+        failed: failedCount
+      }
+    });
+  } catch (error) {
+    console.error('Fix room assignments error:', error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+});
+
+// @route   PUT /api/payments/admin/assign-room
+// @desc    Assign room to payment (manual assignment)
+// @access  Private (Admin)
+router.put('/admin/assign-room', authorize('admin'), async (req, res) => {
+  try {
+    const { transactionId, roomNumber, roomType } = req.body;
+
+    // Find the application with this transaction ID
+    const application = await Application.findOne({
+      'paymentDetails.transactionId': transactionId
+    }).populate('student');
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: 'Payment not found'
+      });
+    }
+
+    // Find the room
+    const room = await Room.findOne({ roomNumber: roomNumber });
+    if (!room) {
+      return res.status(404).json({
+        success: false,
+        message: 'Room not found'
+      });
+    }
+
+    // Check if room has vacancy
+    if (room.occupiedSeats >= room.capacity) {
+      return res.status(400).json({
+        success: false,
+        message: 'Room is already full'
+      });
+    }
+
+    // Add student to room occupants if not already there
+    if (!room.occupants.includes(application.student._id)) {
+      room.occupants.push(application.student._id);
+      room.occupiedSeats = room.occupants.length;
+      await room.save();
+    }
+
+    // Update student room
+    application.student.room = room._id;
+    await application.student.save();
+
+    // Update application room info
+    application.roomInfo = {
+      roomNumber: room.roomNumber,
+      roomType: roomType || room.type
+    };
+    await application.save();
+
+    res.status(200).json({
+      success: true,
+      message: 'Room assigned successfully',
+      data: {
+        roomNumber: room.roomNumber,
+        roomType: roomType || room.type
+      }
+    });
+  } catch (error) {
+    console.error('Room assignment error:', error);
     res.status(500).json({
       success: false,
       message: error.message

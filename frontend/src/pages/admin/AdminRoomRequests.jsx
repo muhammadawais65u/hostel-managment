@@ -98,6 +98,7 @@ const AdminRoomRequests = () => {
     const variants = {
       pending: { variant: 'warning', label: 'Pending' },
       approved: { variant: 'success', label: 'Approved' },
+      assigned: { variant: 'info', label: 'Assigned' },
       rejected: { variant: 'danger', label: 'Rejected' },
       submitted: { variant: 'info', label: 'New' }
     };
@@ -138,7 +139,7 @@ const AdminRoomRequests = () => {
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className=" mx-auto space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -252,6 +253,7 @@ const AdminRoomRequests = () => {
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
+              <option value="assigned">Assigned</option>
               <option value="rejected">Rejected</option>
               <option value="submitted">New</option>
             </select>

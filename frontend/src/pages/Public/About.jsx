@@ -6,18 +6,18 @@ const About = () => {
     <div className="min-h-screen bg-secondary-50">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">About UHMS</h1>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4">About UHBMS</h1>
             <p className="text-xl md:text-2xl text-primary-100 max-w-3xl mx-auto">
-              University Hostel Management System - Your complete solution for modern hostel living
+              University Hostel Booking and Management System - Your complete solution for modern hostel living
             </p>
           </div>
         </div>
       </div>
 
       {/* Mission & Vision */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid md:grid-cols-2 gap-12">
           <div className="card p-8">
             <div className="flex items-center mb-4">
@@ -47,9 +47,9 @@ const About = () => {
 
       {/* Features Section */}
       <div className="bg-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold text-secondary-900 mb-4">Why Choose UHMS?</h2>
+            <h2 className="text-3xl font-bold text-secondary-900 mb-4">Why Choose UHBMS?</h2>
             <p className="text-xl text-secondary-600 max-w-2xl mx-auto">
               We offer comprehensive features designed to make hostel life easier and more enjoyable
             </p>
@@ -101,7 +101,7 @@ const About = () => {
 
       {/* Statistics Section */}
       <div className="bg-secondary-100 py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 text-center">
             <div>
               <div className="text-4xl font-bold text-primary-600 mb-2">5000+</div>
@@ -125,7 +125,7 @@ const About = () => {
 
       {/* Contact Section */}
       <div className="bg-white py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-secondary-900 mb-4">Get in Touch</h2>
             <p className="text-xl text-secondary-600">
@@ -162,8 +162,8 @@ const About = () => {
               </div>
               <h3 className="text-xl font-semibold text-secondary-900 mb-2">Email Us</h3>
               <p className="text-secondary-600">
-                info@uhms.edu<br />
-                support@uhms.edu
+                info@UHBMS.edu<br />
+                support@UHBMS.edu
               </p>
             </div>
           </div>

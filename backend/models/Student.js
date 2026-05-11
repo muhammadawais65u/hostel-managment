@@ -39,7 +39,7 @@ const studentSchema = new mongoose.Schema({
     city: String,
     state: String,
     zipCode: String,
-    country: { type: String, default: 'India' }
+    country: { type: String, default: 'pakistan' }
   },
   emergencyContact: {
     name: String,
@@ -51,22 +51,12 @@ const studentSchema = new mongoose.Schema({
     ref: 'Room',
     default: null
   },
-  hostel: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Hostel',
-    default: null
-  },
   applicationStatus: {
     type: String,
     enum: ['none', 'pending', 'approved', 'rejected'],
     default: 'none'
   },
-  feeStatus: {
-    type: String,
-    enum: ['unpaid', 'partial', 'paid'],
-    default: 'unpaid'
-  },
-  createdAt: {
+    createdAt: {
     type: Date,
     default: Date.now
   },

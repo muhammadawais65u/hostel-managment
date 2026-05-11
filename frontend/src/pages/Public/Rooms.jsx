@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { 
-  Bed, 
-  Users, 
-  Wifi, 
-  Car, 
-  Coffee, 
-  Tv, 
-  Wind, 
-  Shield, 
-  MapPin, 
+import {
+  Bed,
+  Users,
+  Wifi,
+  Car,
+  Coffee,
+  Tv,
+  Wind,
+  Shield,
+  MapPin,
   Star,
   Filter,
   Search,
@@ -21,7 +21,7 @@ import {
   Edit,
   Trash2
 } from 'lucide-react';
-import { roomAPI } from '../../services/api';
+import { roomAPI, adminAPI } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 
 const Rooms = () => {
@@ -29,8 +29,9 @@ const Rooms = () => {
   const { user } = useAuth();
   const [selectedType, setSelectedType] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
-  const [priceRange, setPriceRange] = useState([0, 10000]);
+  const [priceRange, setPriceRange] = useState([0, 50000]);
   const [rooms, setRooms] = useState([]);
+  const [occupancyMap, setOccupancyMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -42,12 +43,32 @@ const Rooms = () => {
   const fetchRooms = async () => {
     try {
       setLoading(true);
-      const response = await roomAPI.getAll({ available: true });
-      setRooms(response.data.data || []);
+      console.log('🚀 Starting to fetch rooms...');
+      
+      const roomsRes = await roomAPI.getAll();
+      console.log('📥 Raw rooms API response:', roomsRes);
+      console.log('📊 Rooms data:', roomsRes.data);
+      console.log('🏠 Rooms array:', roomsRes.data.data);
+      console.log('📏 Number of rooms received:', roomsRes.data.data?.length || 0);
+      
+      setRooms(roomsRes.data.data || []);
+
+      // Try to fetch occupancy data, but don't fail if it doesn't work
+      try {
+        console.log('🔍 Fetching occupancy data...');
+        const occupancyRes = await roomAPI.getOccupancy();
+        console.log('📈 Occupancy response:', occupancyRes.data);
+        setOccupancyMap(occupancyRes.data.data || {});
+      } catch (occupancyErr) {
+        console.error('Failed to fetch occupancy data, falling back to room.occupiedSeats:', occupancyErr);
+        setOccupancyMap({});
+      }
+
       setError('');
     } catch (err) {
       setError('Failed to load rooms. Please try again later.');
-      console.error('Error fetching rooms:', err);
+      console.error('❌ Error fetching rooms:', err);
+      console.error('❌ Error response:', err.response);
     } finally {
       setLoading(false);
     }
@@ -95,6 +116,21 @@ const Rooms = () => {
     }
   };
 
+  // Calculate actual occupancy based on occupancyMap from public API, fall back to room.occupiedSeats
+  const getRoomOccupancy = (room) => {
+    // If occupancyMap has data for this room, use it
+    if (Object.keys(occupancyMap).length > 0 && occupancyMap[room.roomNumber] !== undefined) {
+      return occupancyMap[room.roomNumber];
+    }
+    // Otherwise fall back to room.occupiedSeats
+    return room.occupiedSeats || 0;
+  };
+
+  const isRoomOccupied = (room) => {
+    const actualOccupancy = getRoomOccupancy(room);
+    return actualOccupancy >= room.capacity;
+  };
+
   const roomTypes = [
     { id: 'all', name: 'All Rooms' },
     { id: 'single', name: 'Single Room' },
@@ -112,18 +148,10 @@ const Rooms = () => {
     security: { icon: Shield, name: '24/7 Security' }
   };
 
-  const filteredRooms = rooms.filter(room => {
-    const roomType = room.type || 'standard';
-    const roomName = (room.name || room.roomNumber || '').toLowerCase();
-    const roomDesc = (room.description || '').toLowerCase();
-    const roomPrice = room.price || room.monthlyRent || 0;
-
-    const matchesType = selectedType === 'all' || roomType === selectedType;
-    const matchesSearch = roomName.includes(searchTerm.toLowerCase()) ||
-                         roomDesc.includes(searchTerm.toLowerCase());
-    const matchesPrice = roomPrice >= priceRange[0] && roomPrice <= priceRange[1];
-    return matchesType && matchesSearch && matchesPrice;
-  });
+  const filteredRooms = rooms;
+  
+  console.log('📊 Total rooms:', rooms.length);
+  console.log('🏠 All rooms shown:', rooms.map(r => r.roomNumber || r.name));
 
   const RoomCard = ({ room }) => {
     const [isLiked, setIsLiked] = useState(false);
@@ -133,7 +161,9 @@ const Rooms = () => {
     const roomType = room.type || 'standard';
     const roomCapacity = room.capacity || 1;
     const roomTotal = room.capacity || 1;
-    const roomAvailable = room.capacity - (room.occupiedSeats || 0);
+    const actualOccupancy = getRoomOccupancy(room);
+    const roomAvailable = roomCapacity - actualOccupancy;
+    const isOccupied = actualOccupancy >= roomCapacity;
     const roomPrice = room.price || room.rentPerMonth || 0;
     const roomLocation = `Floor ${room.floor || 1}`;
     const roomDescription = room.description || 'Comfortable and well-maintained room with modern amenities.';
@@ -169,6 +199,9 @@ const Rooms = () => {
             <div className="bg-black/60 backdrop-blur-sm text-white px-3 py-1 rounded-full text-xs font-semibold capitalize">
               {roomType}
             </div>
+            {roomType === 'double' && (
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-blue-600"></div>
+            )}
           </div>
 
           {/* Like Button */}
@@ -192,7 +225,7 @@ const Rooms = () => {
               </div>
             ) : (
               <div className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md">
-                Fully Booked
+                Occupied
               </div>
             )}
           </div>
@@ -287,12 +320,19 @@ const Rooms = () => {
                   </button>
                 </>
               )}
-              {user?.role === 'student' ? (
+              {isOccupied ? (
                 <button
-                  onClick={() => handleBookNow(room)}
+                  disabled
+                  className="px-5 py-2.5 bg-red-500 text-white rounded-lg cursor-not-allowed font-medium text-sm"
+                >
+                  Already Booked
+                </button>
+              ) : user?.role === 'student' ? (
+                <button
+                  onClick={() => navigate(`/rooms/${roomId}`)}
                   className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm"
                 >
-                  Apply Now
+                View Details
                 </button>
               ) : (
                 <button
@@ -313,7 +353,7 @@ const Rooms = () => {
     <div className="min-h-screen bg-gray-50">
       {/* Hero Section */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <h1 className="text-3xl md:text-4xl font-bold mb-3">Available Rooms</h1>
             <p className="text-lg text-blue-100 max-w-2xl mx-auto">
@@ -325,7 +365,7 @@ const Rooms = () => {
 
       {/* Search & Filter Bar */}
       <div className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex flex-col md:flex-row gap-4 items-center">
             {/* Search */}
             <div className="relative flex-1 w-full">
@@ -368,7 +408,7 @@ const Rooms = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filter Tags & Results */}
         <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-2">
@@ -384,12 +424,12 @@ const Rooms = () => {
             </span>
             
             {/* Clear Filters */}
-            {(selectedType !== 'all' || searchTerm || priceRange[1] !== 10000) && (
+            {(selectedType !== 'all' || searchTerm || priceRange[1] !== 50000) && (
               <button
                 onClick={() => {
                   setSelectedType('all');
                   setSearchTerm('');
-                  setPriceRange([0, 10000]);
+                  setPriceRange([0, 50000]);
                 }}
                 className="flex items-center gap-1 text-sm text-blue-600 hover:text-blue-700 font-medium"
               >
@@ -419,7 +459,7 @@ const Rooms = () => {
             Mid-range
           </button>
           <button
-            onClick={() => setPriceRange([5000, 10000])}
+            onClick={() => setPriceRange([5000, 50000])}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
               priceRange[0] === 5000 ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
             }`}

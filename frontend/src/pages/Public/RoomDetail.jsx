@@ -62,6 +62,8 @@ const RoomDetail = () => {
 
   const [isLiked, setIsLiked] = useState(false);
 
+  const [occupancyMap, setOccupancyMap] = useState({});
+
 
 
   useEffect(() => {
@@ -78,9 +80,12 @@ const RoomDetail = () => {
 
       setLoading(true);
 
-      const response = await roomAPI.getById(id);
-
-      setRoom(response.data.data);
+      const [roomRes, occupancyRes] = await Promise.all([
+        roomAPI.getById(id),
+        roomAPI.getOccupancy()
+      ]);
+      setRoom(roomRes.data.data);
+      setOccupancyMap(occupancyRes.data.data || {});
 
       setError('');
 
@@ -103,8 +108,8 @@ const RoomDetail = () => {
   const handleBookNow = () => {
     if (!user) {
       // Redirect to login with application redirect and current room data
-      navigate('/login', { 
-        state: { 
+      navigate('/login', {
+        state: {
           redirect: '/student/application',
           selectedRoom: room,
           selectedRoomId: room._id
@@ -114,12 +119,29 @@ const RoomDetail = () => {
     }
 
     // If user is logged in, navigate to application with room data
-    navigate('/student/application', { 
-      state: { 
+    navigate('/student/application', {
+      state: {
         selectedRoom: room,
         selectedRoomId: room._id
       }
     });
+  };
+
+  // Calculate actual occupancy based on occupancyMap from public API, fall back to room.occupiedSeats
+  const getRoomOccupancy = () => {
+    if (!room) return 0;
+    // If occupancyMap has data for this room, use it
+    if (Object.keys(occupancyMap).length > 0 && occupancyMap[room.roomNumber] !== undefined) {
+      return occupancyMap[room.roomNumber];
+    }
+    // Otherwise fall back to room.occupiedSeats
+    return room.occupiedSeats || 0;
+  };
+
+  const isRoomOccupied = () => {
+    if (!room) return false;
+    const actualOccupancy = getRoomOccupancy();
+    return actualOccupancy >= room.capacity;
   };
 
 
@@ -250,7 +272,7 @@ const RoomDetail = () => {
 
       <div className="bg-white border-b border-gray-200 sticky top-0 z-50">
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-3">
 
           <button
 
@@ -272,7 +294,7 @@ const RoomDetail = () => {
 
 
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {/* Header */}
 
@@ -602,17 +624,21 @@ const RoomDetail = () => {
 
 
 
-                <button
-
-                  onClick={handleBookNow}
-
-                  className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
-
-                >
-
-                  {user ? 'Book Now' : 'Book Now'}
-
-                </button>
+                {isRoomOccupied() ? (
+                  <button
+                    disabled
+                    className="w-full py-3.5 bg-red-500 text-white rounded-xl font-semibold cursor-not-allowed shadow-lg shadow-red-200"
+                  >
+                    Already Booked
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleBookNow}
+                    className="w-full py-3.5 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+                  >
+                    {user ? 'Book Now' : 'Book Now'}
+                  </button>
+                )}
 
 
 
@@ -632,57 +658,66 @@ const RoomDetail = () => {
 
                 <h3 className="font-semibold text-gray-900 mb-4">Availability</h3>
 
-                <div className="space-y-3">
+                {isRoomOccupied() ? (
+                  <div className="text-center py-4">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-red-100 text-red-700 rounded-full font-semibold">
+                      <span>Already Booked</span>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-2">This room is fully occupied</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
 
-                  <div>
+                    <div>
 
-                    <div className="flex justify-between text-sm mb-1">
+                      <div className="flex justify-between text-sm mb-1">
 
-                      <span className="text-gray-600">Occupied</span>
+                        <span className="text-gray-600">Occupied</span>
 
-                      <span className="font-medium">{roomTotal - roomAvailable} beds</span>
+                        <span className="font-medium">{roomTotal - roomAvailable} beds</span>
+
+                      </div>
+
+                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+
+                        <div
+
+                          className="h-full bg-gray-400 rounded-full"
+
+                          style={{ width: `${((roomTotal - roomAvailable) / roomTotal) * 100}%` }}
+
+                        />
+
+                      </div>
 
                     </div>
 
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div>
 
-                      <div
+                      <div className="flex justify-between text-sm mb-1">
 
-                        className="h-full bg-gray-400 rounded-full"
+                        <span className="text-gray-600">Available</span>
 
-                        style={{ width: `${((roomTotal - roomAvailable) / roomTotal) * 100}%` }}
+                        <span className="font-medium text-green-600">{roomAvailable} beds</span>
 
-                      />
+                      </div>
+
+                      <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+
+                        <div
+
+                          className="h-full bg-green-500 rounded-full"
+
+                          style={{ width: `${(roomAvailable / roomTotal) * 100}%` }}
+
+                        />
+
+                      </div>
 
                     </div>
 
                   </div>
-
-                  <div>
-
-                    <div className="flex justify-between text-sm mb-1">
-
-                      <span className="text-gray-600">Available</span>
-
-                      <span className="font-medium text-green-600">{roomAvailable} beds</span>
-
-                    </div>
-
-                    <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
-
-                      <div
-
-                        className="h-full bg-green-500 rounded-full"
-
-                        style={{ width: `${(roomAvailable / roomTotal) * 100}%` }}
-
-                      />
-
-                    </div>
-
-                  </div>
-
-                </div>
+                )}
 
               </div>
 

@@ -40,6 +40,10 @@ const PaymentManagement = () => {
     customAmount: '',
     reason: ''
   });
+  const [roomAssignmentForm, setRoomAssignmentForm] = useState({
+    roomNumber: '',
+    roomType: ''
+  });
   const [rescheduledPayments, setRescheduledPayments] = useState([]);
   const [showRescheduledList, setShowRescheduledList] = useState(false);
 
@@ -86,6 +90,26 @@ const PaymentManagement = () => {
   const handleCloseRoomAssignment = () => {
     setShowRoomAssignment(false);
     setSelectedPayment(null);
+    setRoomAssignmentForm({
+      roomNumber: '',
+      roomType: ''
+    });
+  };
+
+  const handleRoomAssignmentSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setLoading(true);
+      await adminAPI.assignRoom(selectedPayment.transactionId, roomAssignmentForm);
+      alert('Room assigned successfully!');
+      handleCloseRoomAssignment();
+      fetchPayments();
+    } catch (err) {
+      console.error('Room assignment error:', err);
+      alert(err.response?.data?.message || 'Failed to assign room');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleReschedulePayment = (payment) => {
@@ -173,7 +197,7 @@ const PaymentManagement = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -402,7 +426,10 @@ const PaymentManagement = () => {
                           <Bed className="h-4 w-4 text-gray-400" />
                           <div>
                             <p className="text-xs text-gray-500">Room Number</p>
-                            <p className="font-medium">{payment.roomNumber || 'Not Assigned'}</p>
+                            <div className="flex items-center gap-2">
+                              <p className="font-medium">{payment.roomNumber || 'Not Assigned'}</p>
+                              
+                            </div>
                             <p className="text-xs text-gray-400">{payment.roomType || 'No room type'}</p>
                           </div>
                         </div>
@@ -571,7 +598,7 @@ const PaymentManagement = () => {
               </div>
             </div>
 
-            <div className="p-6">
+            <form onSubmit={handleRoomAssignmentSubmit} className="p-6">
               <div className="mb-6">
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h3 className="font-medium text-blue-900 mb-2">Student Information</h3>
@@ -587,16 +614,24 @@ const PaymentManagement = () => {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Room Number</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Room Number *</label>
                   <input
                     type="text"
                     placeholder="e.g., A-101"
+                    value={roomAssignmentForm.roomNumber}
+                    onChange={(e) => setRoomAssignmentForm({...roomAssignmentForm, roomNumber: e.target.value})}
+                    required
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Room Type</label>
-                  <select className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Room Type *</label>
+                  <select
+                    value={roomAssignmentForm.roomType}
+                    onChange={(e) => setRoomAssignmentForm({...roomAssignmentForm, roomType: e.target.value})}
+                    required
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  >
                     <option value="">Select room type</option>
                     <option value="single">Single Room</option>
                     <option value="double">Double Room</option>
@@ -608,6 +643,7 @@ const PaymentManagement = () => {
 
               <div className="flex gap-3 mt-6">
                 <Button
+                  type="button"
                   variant="outline"
                   onClick={handleCloseRoomAssignment}
                   className="flex-1"
@@ -615,13 +651,15 @@ const PaymentManagement = () => {
                   Cancel
                 </Button>
                 <Button
+                  type="submit"
                   variant="primary"
+                  disabled={loading}
                   className="flex-1"
                 >
-                  Assign Room
+                  {loading ? <Spinner size="sm" /> : 'Assign Room'}
                 </Button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       )}

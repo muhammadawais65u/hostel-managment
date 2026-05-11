@@ -319,6 +319,15 @@ router.put('/:id/approve', authorize('admin'), async (req, res) => {
         applicationStatus: 'approved'
       });
 
+      // Populate roomInfo in application
+      application.roomInfo = {
+        roomNumber: room.roomNumber,
+        roomType: room.type,
+        floor: room.floor.toString(),
+        capacity: room.capacity.toString(),
+        price: room.price?.toString() || room.monthlyRent?.toString() || '0'
+      };
+
       allocatedRoom = room;
     }
 
