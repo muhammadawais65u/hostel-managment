@@ -163,9 +163,12 @@ const Landing = () => {
                   </div>
                 </div>
 
-                <Button className="w-full mt-6">
-                  Apply Now
-                </Button>
+   <Button
+  className="w-full mt-6"
+  onClick={() => window.location.href = "/rooms"}
+>
+  Apply Now
+</Button>
               </div>
 
               {/* Decorative Elements */}
@@ -251,19 +254,20 @@ const Landing = () => {
                 Join thousands of students and administrators who trust our platform for their hostel management needs.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link to="/register">
+  <Link to="/register">
                   <Button
                     size="lg"
-                    className="bg-white text-primary-700 hover:bg-primary-50"
+                    className="bg-primary-600 text-white hover:bg-primary-700 focus:ring-primary-500 shadow-sm"
+                    rightIcon={ArrowRight}
                   >
-                    Create Account
+                    Get Started
                   </Button>
                 </Link>
                 <Link to="/login">
                   <Button
                     variant="outline"
                     size="lg"
-                    className="border-white text-white hover:bg-white/10"
+                    className="border-primary-600 border-2 text-primary-600 hover:bg-primary-50"
                   >
                     Sign In
                   </Button>
