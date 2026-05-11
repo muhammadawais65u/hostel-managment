@@ -1,15 +1,21 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Building2, Mail, Phone, MapPin, Share2, MessageCircle, Camera, Briefcase } from 'lucide-react';
 
 const Footer = () => {
+  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
+
+  const handleLinkClick = (href) => {
+    window.scrollTo(0, 0);
+    navigate(href);
+  };
 
   const footerLinks = {
     quickLinks: [
       { name: 'Home', href: '/' },
       { name: 'About Us', href: '/about' },
-      { name: 'Hostels', href: '/hostels' },
+      { name: 'Rooms', href: '/rooms' },
       { name: 'Contact', href: '/contact' },
     ],
     services: [
@@ -35,7 +41,7 @@ const Footer = () => {
 
   return (
     <footer className="bg-secondary-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className=" mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand Info */}
           <div className="lg:col-span-1">
@@ -70,12 +76,12 @@ const Footer = () => {
             <ul className="space-y-2">
               {footerLinks.quickLinks.map((link) => (
                 <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-secondary-400 hover:text-white text-sm transition-colors"
+                  <button
+                    onClick={() => handleLinkClick(link.href)}
+                    className="text-secondary-400 hover:text-white text-sm transition-colors text-left w-full"
                   >
                     {link.name}
-                  </Link>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -87,12 +93,12 @@ const Footer = () => {
             <ul className="space-y-2">
               {footerLinks.services.map((link) => (
                 <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-secondary-400 hover:text-white text-sm transition-colors"
+                  <button
+                    onClick={() => handleLinkClick(link.href)}
+                    className="text-secondary-400 hover:text-white text-sm transition-colors text-left w-full"
                   >
                     {link.name}
-                  </Link>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -104,12 +110,12 @@ const Footer = () => {
             <ul className="space-y-2">
               {footerLinks.support.map((link) => (
                 <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-secondary-400 hover:text-white text-sm transition-colors"
+                  <button
+                    onClick={() => handleLinkClick(link.href)}
+                    className="text-secondary-400 hover:text-white text-sm transition-colors text-left w-full"
                   >
                     {link.name}
-                  </Link>
+                  </button>
                 </li>
               ))}
             </ul>

@@ -15,7 +15,8 @@ import {
   Calendar,
   UserPlus,
   Edit,
-  X
+  X,
+  Trash2
 } from 'lucide-react';
 import { complaintAPI, adminAPI } from '../../services/api';
 import Card from '../../components/ui/Card';
@@ -43,6 +44,7 @@ const ComplaintManagement = () => {
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [reports, setReports] = useState([]);
   const [showReports, setShowReports] = useState(false);
+  const [activeTab, setActiveTab] = useState('complaints'); // 'complaints' or 'contact'
 
   const priorities = [
     { value: 'low', label: 'Low', color: 'bg-blue-500/20 text-blue-700 border-blue-500/30' },
@@ -206,6 +208,29 @@ const ComplaintManagement = () => {
     }
   };
 
+  const handleDelete = async (complaintId) => {
+    if (!window.confirm('Are you sure you want to delete this complaint/contact message? This action cannot be undone.')) {
+      return;
+    }
+
+    setSubmitting(true);
+    setError('');
+    setSuccess('');
+
+    try {
+      await complaintAPI.delete(complaintId);
+      setSuccess('Complaint/contact message deleted successfully!');
+      setShowDetailsModal(false);
+      setSelectedComplaint(null);
+      fetchComplaints();
+      setTimeout(() => setSuccess(''), 3000);
+    } catch (err) {
+      setError('Failed to delete complaint/contact message');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const variants = {
       pending: { variant: 'warning', label: 'Pending' },
@@ -230,7 +255,8 @@ const ComplaintManagement = () => {
                          complaint.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          complaint.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || complaint.status === filterStatus;
-    return matchesSearch && matchesFilter;
+    const matchesTab = activeTab === 'complaints' ? !complaint.isContact : complaint.isContact;
+    return matchesSearch && matchesFilter && matchesTab;
   });
 
   if (loading) {
@@ -257,8 +283,32 @@ const ComplaintManagement = () => {
           >
             Back to Dashboard
           </Button>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Complaint Management</h1>
-          <p className="text-gray-600">View and respond to student complaints</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Support & Complaint Management</h1>
+          <p className="text-gray-600">View and respond to student complaints and contact messages</p>
+
+          {/* Tabs */}
+          <div className="flex gap-4 mt-6 border-b border-gray-200">
+            <button
+              onClick={() => setActiveTab('complaints')}
+              className={`pb-3 px-4 font-medium transition-colors ${
+                activeTab === 'complaints'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Complaints
+            </button>
+            <button
+              onClick={() => setActiveTab('contact')}
+              className={`pb-3 px-4 font-medium transition-colors ${
+                activeTab === 'contact'
+                  ? 'text-blue-600 border-b-2 border-blue-600'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              Contact Messages
+            </button>
+          </div>
         </div>
 
         {/* Alerts */}
@@ -276,80 +326,82 @@ const ComplaintManagement = () => {
           </div>
         )}
 
-        {/* Reports Section */}
-        <div className="mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-            <div className="p-4 border-b border-gray-200">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900">Warden Reports</h2>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowReports(!showReports)}
-                >
-                  {showReports ? 'Hide' : 'Show'} Reports ({reports.length})
-                </Button>
+        {/* Reports Section - Only show for complaints tab */}
+        {activeTab === 'complaints' && (
+          <div className="mb-8">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+              <div className="p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-900">Warden Reports</h2>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowReports(!showReports)}
+                  >
+                    {showReports ? 'Hide' : 'Show'} Reports ({reports.length})
+                  </Button>
+                </div>
               </div>
-            </div>
-            
-            {showReports && (
-              <div className="p-4">
-                {reports.length > 0 ? (
-                  <div className="space-y-4">
-                    {reports.map((report, index) => (
-                      <div key={index} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <AlertCircle className="h-4 w-4 text-yellow-600" />
-                              <span className="font-medium text-yellow-800">Report from Warden</span>
-                              <span className="text-xs text-yellow-600">
-                                {new Date(report.createdAt).toLocaleString()}
-                              </span>
-                            </div>
-                            
-                            {/* Complaint Details */}
-                            {report.complaint && (
-                              <div className="bg-white rounded-md p-3 mb-3 border border-yellow-300">
-                                <div className="flex items-center gap-2 mb-2">
-                                  <h4 className="font-semibold text-gray-900">Complaint:</h4>
-                                  <Badge variant="outline" size="sm">
-                                    {report.complaint.priority}
-                                  </Badge>
-                                  <Badge variant="outline" size="sm">
-                                    {report.complaint.status}
-                                  </Badge>
-                                </div>
-                                <h5 className="font-medium text-gray-800 mb-1">{report.complaint.title}</h5>
-                                <p className="text-sm text-gray-600">{report.complaint.description}</p>
+
+              {showReports && (
+                <div className="p-4">
+                  {reports.length > 0 ? (
+                    <div className="space-y-4">
+                      {reports.map((report, index) => (
+                        <div key={index} className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                                <span className="font-medium text-yellow-800">Report from Warden</span>
+                                <span className="text-xs text-yellow-600">
+                                  {new Date(report.createdAt).toLocaleString()}
+                                </span>
                               </div>
-                            )}
-                            
-                            {/* Report Message */}
-                            <div className="mb-2">
-                              <h4 className="font-medium text-yellow-800 mb-1">Warden's Report:</h4>
-                              <p className="text-yellow-900 text-sm">{report.message}</p>
+
+                              {/* Complaint Details */}
+                              {report.complaint && (
+                                <div className="bg-white rounded-md p-3 mb-3 border border-yellow-300">
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <h4 className="font-semibold text-gray-900">Complaint:</h4>
+                                    <Badge variant="outline" size="sm">
+                                      {report.complaint.priority}
+                                    </Badge>
+                                    <Badge variant="outline" size="sm">
+                                      {report.complaint.status}
+                                    </Badge>
+                                  </div>
+                                  <h5 className="font-medium text-gray-800 mb-1">{report.complaint.title}</h5>
+                                  <p className="text-sm text-gray-600">{report.complaint.description}</p>
+                                </div>
+                              )}
+
+                              {/* Report Message */}
+                              <div className="mb-2">
+                                <h4 className="font-medium text-yellow-800 mb-1">Warden's Report:</h4>
+                                <p className="text-yellow-900 text-sm">{report.message}</p>
+                              </div>
+
+
                             </div>
-                            
-                          
+                            <Badge variant="warning" size="sm">
+                              {report.priority || 'medium'}
+                            </Badge>
                           </div>
-                          <Badge variant="warning" size="sm">
-                            {report.priority || 'medium'}
-                          </Badge>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-gray-500">
-                    <AlertCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <p>No reports from wardens yet</p>
-                  </div>
-                )}
-              </div>
-            )}
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      <AlertCircle className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                      <p>No reports from wardens yet</p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="w-full">
           {/* Complaints List */}
@@ -372,10 +424,12 @@ const ComplaintManagement = () => {
                   className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="all">All Status</option>
-                  <option value="pending">Pending</option>
+                  <option value="submitted">Submitted</option>
+                  <option value="under_review">Under Review</option>
                   <option value="in_progress">In Progress</option>
                   <option value="resolved">Resolved</option>
                   <option value="rejected">Rejected</option>
+                  <option value="closed">Closed</option>
                 </select>
               </div>
             </div>
@@ -432,6 +486,17 @@ const ComplaintManagement = () => {
                         >
                           Update Status
                         </Button>
+                        <Button
+                          size="sm"
+                          variant="danger"
+                          leftIcon={Trash2}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDelete(complaint._id);
+                          }}
+                        >
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -439,11 +504,15 @@ const ComplaintManagement = () => {
               ) : (
                 <div className="bg-white rounded-xl shadow-sm p-12 text-center">
                   <MessageSquare className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Complaints Found</h3>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                    {activeTab === 'contact' ? 'No Contact Messages Found' : 'No Complaints Found'}
+                  </h3>
                   <p className="text-gray-500">
-                    {searchTerm || filterStatus !== 'all' 
-                      ? 'No complaints match your search criteria' 
-                      : 'No complaints have been submitted yet'}
+                    {searchTerm || filterStatus !== 'all'
+                      ? `No ${activeTab === 'contact' ? 'contact messages' : 'complaints'} match your search criteria`
+                      : activeTab === 'contact'
+                        ? 'No contact messages have been submitted yet'
+                        : 'No complaints have been submitted yet'}
                   </p>
                 </div>
               )}
@@ -531,10 +600,12 @@ const ComplaintManagement = () => {
                     onChange={(e) => handleStatusChange(selectedComplaint._id, e.target.value)}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
-                    <option value="pending">Pending</option>
+                    <option value="submitted">Submitted</option>
+                    <option value="under_review">Under Review</option>
                     <option value="in_progress">In Progress</option>
                     <option value="resolved">Resolved</option>
                     <option value="rejected">Rejected</option>
+                    <option value="closed">Closed</option>
                   </select>
                 </div>
 
@@ -623,6 +694,14 @@ const ComplaintManagement = () => {
                     Quick Update Status
                   </Button>
                   <Button
+                    variant="danger"
+                    leftIcon={Trash2}
+                    onClick={() => handleDelete(selectedComplaint._id)}
+                    className="flex-1"
+                  >
+                    Delete
+                  </Button>
+                  <Button
                     variant="outline"
                     onClick={() => {
                       setShowDetailsModal(false);
@@ -650,10 +729,12 @@ const ComplaintManagement = () => {
                   onChange={(e) => setSelectedStatus(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
-                  <option value="pending">Pending</option>
+                  <option value="submitted">Submitted</option>
+                  <option value="under_review">Under Review</option>
                   <option value="in_progress">In Progress</option>
                   <option value="resolved">Resolved</option>
                   <option value="rejected">Rejected</option>
+                  <option value="closed">Closed</option>
                 </select>
               </div>
 

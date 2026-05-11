@@ -28,6 +28,10 @@ const complaintSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  isContact: {
+    type: Boolean,
+    default: false
+  },
   title: {
     type: String,
     required: [true, 'Please provide a complaint title'],

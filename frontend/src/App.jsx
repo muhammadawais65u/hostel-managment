@@ -1,7 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/layout/ProtectedRoute';
-import DashboardLayout from './components/layout/DashboardLayout';
 import AdminLayout from './components/layout/AdminLayout';
 import WardenLayout from './components/layout/WardenLayout';
 import StudentLayout from './components/layout/StudentLayout';
@@ -104,11 +103,6 @@ const App = () => {
             <Route path="complaints" element={<Complaints />} />
             <Route path="room" element={<RoomDetails />} />
             <Route path="notifications" element={<StudentNotifications />} />
-            <Route path="materials" element={<PlaceholderPage title="Study Materials" />} />
-            <Route path="roommates" element={<PlaceholderPage title="Roommates" />} />
-            <Route path="leave" element={<PlaceholderPage title="Leave Request" />} />
-            <Route path="help" element={<PlaceholderPage title="Help & Support" />} />
-            <Route path="settings" element={<Settings />} />
             <Route path="*" element={<Navigate to="/student/dashboard" replace />} />
           </Route>
          
@@ -131,11 +125,6 @@ const App = () => {
             <Route path="notifications" element={<AdminNotifications />} />
             <Route path="payments" element={<PaymentManagement />} />
             <Route path="complaints" element={<ComplaintManagement />} />
-            <Route path="fees" element={<PlaceholderPage title="Fee Management" />} />
-            <Route path="reports" element={<PlaceholderPage title="Reports" />} />
-            <Route path="attendance" element={<PlaceholderPage title="Attendance" />} />
-            <Route path="settings" element={<PlaceholderPage title="Settings" />} />
-            <Route path="help" element={<PlaceholderPage title="Help & Support" />} />
             <Route path="*" element={<Navigate to="/admin/dashboard" replace />} />
           </Route>
 
@@ -149,16 +138,10 @@ const App = () => {
             }
           >
             <Route path="dashboard" element={<WardenDashboard />} />
-            <Route path="hostels" element={<PlaceholderPage title="My Hostels" />} />
             <Route path="rooms" element={<WardenOccupiedRooms />} />
             <Route path="students" element={<WardenStudents />} />
             <Route path="complaints" element={<WardenComplaints />} />
             <Route path="notifications" element={<WardenNotifications />} />
-            <Route path="allocations" element={<PlaceholderPage title="Room Allocations" />} />
-            <Route path="attendance" element={<PlaceholderPage title="Attendance" />} />
-            <Route path="reports" element={<PlaceholderPage title="Reports" />} />
-            <Route path="settings" element={<PlaceholderPage title="Settings" />} />
-            <Route path="help" element={<PlaceholderPage title="Help & Support" />} />
             <Route path="*" element={<Navigate to="/warden/dashboard" replace />} />
           </Route>
 

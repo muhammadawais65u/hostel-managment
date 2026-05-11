@@ -385,6 +385,74 @@ const sendComplaintAcknowledgmentEmail = async (email, name, title) => {
   }
 };
 
+// Send reply email to complaint/contact submitter
+const sendComplaintReplyEmail = async (email, name, title, replyMessage, replierName) => {
+  try {
+    const transporter = createTransporter();
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: `Reply to your message: ${title} - University Hostel Booking and Management System`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
+          <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); padding: 30px; border-radius: 10px; text-align: center; color: white;">
+            <h1 style="margin: 0; font-size: 24px;">University Hostel Booking and Management System</h1>
+            <p style="margin: 10px 0 0 0; opacity: 0.9;">New Reply Received</p>
+          </div>
+
+          <div style="background: #f9f9f9; padding: 30px; border-radius: 10px; margin: 20px 0;">
+            <h2 style="color: #333; margin: 0 0 20px 0;">Hello ${name},</h2>
+            <p style="color: #666; line-height: 1.6; margin: 0 0 20px 0;">
+              You have received a reply from <strong>${replierName}</strong> regarding your message: <strong>"${title}"</strong>
+            </p>
+
+            <div style="background: #fff; border: 2px solid #28a745; padding: 20px; border-radius: 8px; margin: 20px 0;">
+              <div style="margin-bottom: 15px;">
+                <strong style="color: #666;">Your Original Subject:</strong>
+                <p style="color: #333; margin: 10px 0 0 0;">${title}</p>
+              </div>
+              <div style="background: #f0f9f0; padding: 15px; border-radius: 6px; margin-top: 15px;">
+                <strong style="color: #28a745;">Reply from ${replierName}:</strong>
+                <p style="color: #666; margin: 10px 0 0 0; line-height: 1.6;">${replyMessage}</p>
+              </div>
+            </div>
+
+            <div style="background: #d4edda; border: 1px solid #c3e6cb; padding: 15px; border-radius: 8px; margin: 20px 0;">
+              <p style="color: #155724; margin: 0; font-size: 14px;">
+                <strong>Next Steps:</strong> If you have further questions, you can reply to this message through the portal or contact our office directly.
+              </p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/login"
+                 style="background: #28a745; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold;">
+                View in Portal
+              </a>
+            </div>
+          </div>
+
+          <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <p style="color: #999; font-size: 12px; margin: 0;">
+              This is an automated email. Please do not reply to this message.
+            </p>
+            <p style="color: #999; font-size: 12px; margin: 10px 0 0 0;">
+              © ${new Date().getFullYear()} University Hostel Booking and Management System
+            </p>
+          </div>
+        </div>
+      `
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log(`Reply email sent to ${email} successfully`);
+    return true;
+  } catch (error) {
+    console.error('Error sending reply email:', error);
+    return false;
+  }
+};
+
 // Send payment reschedule email
 const sendPaymentRescheduleEmail = async (email, name, nextPaymentDate, paymentFrequency, amount, reason) => {
   try {
@@ -468,5 +536,6 @@ module.exports = {
   sendPaymentConfirmationEmail,
   sendPaymentRescheduleEmail,
   sendComplaintEmail,
-  sendComplaintAcknowledgmentEmail
+  sendComplaintAcknowledgmentEmail,
+  sendComplaintReplyEmail
 };

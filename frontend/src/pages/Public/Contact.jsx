@@ -26,22 +26,35 @@ const Contact = () => {
     setIsSubmitting(true);
 
     try {
-      // If subject is complaint, submit as a complaint via public route
-      if (formData.subject === 'complaint') {
-        await complaintAPI.createPublic({
-          name: formData.name,
-          email: formData.email,
-          title: formData.subject,
-          description: formData.message,
-          category: 'other',
-          priority: 'medium'
-        });
-        alert('Complaint submitted successfully! You will receive an email confirmation and our team will respond within 2-3 business days.');
-      } else {
-        // For other subjects, just simulate submission
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        alert('Thank you for your message. We will get back to you soon!');
-      }
+      // Map subject to category and priority
+      const categoryMap = {
+        'general': 'other',
+        'admission': 'other',
+        'fees': 'other',
+        'maintenance': 'maintenance',
+        'complaint': 'other',
+        'other': 'other'
+      };
+
+      const priorityMap = {
+        'general': 'low',
+        'admission': 'medium',
+        'fees': 'medium',
+        'maintenance': 'high',
+        'complaint': 'medium',
+        'other': 'low'
+      };
+
+      await complaintAPI.createPublic({
+        name: formData.name,
+        email: formData.email,
+        title: formData.subject,
+        description: formData.message,
+        category: categoryMap[formData.subject] || 'other',
+        priority: priorityMap[formData.subject] || 'low',
+        isContact: true // Mark as contact message
+      });
+      alert('Message submitted successfully! We will get back to you within 2-3 business days.');
 
       setFormData({
         name: '',
